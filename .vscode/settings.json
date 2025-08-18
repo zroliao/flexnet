@@ -1,0 +1,31 @@
+{
+  "editor.rulers": [120, 150],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.fontFamily": "Fira Code",
+  "editor.fontLigatures": true,
+  "prettier.printWidth": 120,
+  "files.eol": "\n", // 固定使用 \n 結尾
+  "files.insertFinalNewline": true, // 固定保留最後一個空行
+  "prettier.singleQuote": true,
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
+  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
+  "git.ignoreLimitWarning": true,
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "files.exclude": {
+    "yarn.lock": true,
+    "debug.log": true,
+    "*.zip": true,
+    "tsconfig.json": true,
+    ".gitignore": true,
+    ".editorconfig": true,
+    "node_modules": true,
+    // "dist*": true,
+    // "build": true,
+    "**/.gitkeep": true,
+    "extension": true,
+    "plugin": true,
+    "temp": true,
+    "init_cmdbar.js": true
+  }
+}

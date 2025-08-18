@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+
+  <body>
+    <p>
+      這是一個 P2P 測試範例，你可以修改 option.offer_id
+      連接某一台主機服務並且定時送出 heartbeat 確認是否可以連線正確
+    </p>
+    <script src="../dist/wsweb/index.js"></script>
+    <script src="../dist/ppweb/index.js"></script>
+    <script>
+      /****************************************************************************
+       * (1) 如果你有修改 code 則要執行 yarn build
+       * (2) 執行此範例需要在根目錄底下執行 http-server (根目錄指的就是 index.html 的上一層)
+       *     - 若你的電腦缺少 http-server 請先執行 npm install http-server -g
+       ***************************************************************************/
+
+      console.info(ppweb);
+
+      // 建立 Peer Connection 並且每9秒就送一次 heartbeat message
+      // =======================================================================
+      function createPeerConnection(
+        /* @param */ peer,
+        /* @param */ offer,
+        /* @param */ alias
+        /* RETURN */
+      ) {
+        /* ****** */
+        const defaultOption = {
+          version: "0.1.0",
+          username: "37012eaa-4ef2-46d0-a079-855fceb13a29",
+          password: "49aa53b8-f965-4312-b3fc-12d21bf66103",
+          peer_id: peer,
+          offer_id: offer,
+          signal_server: "ws://localhost:31473",
+          ice_servers: [
+            {
+              urls: [
+                "stun:stun.l.google.com:19302",
+                "stun:stun1.l.google.com:19302",
+                "stun:stun2.l.google.com:19302",
+                "stun:stun3.l.google.com:19302",
+                "stun:stun4.l.google.com:19302",
+              ],
+            },
+          ],
+        };
+
+        const rtc = new ppweb.default(
+          defaultOption,
+          () => console.info(`[${alias}] connected`),
+          (data) => console.info(`[${alias}] ${data}`),
+          () => console.info(`[${alias}] disconnect`)
+        );
+
+        // setInterval(async () => {
+        //   try {
+        //     const result = await rtc.emitControl(uri, {...});
+        //     console.info(
+        //       `[${alias}] send heartbeat to peer, response:${result.statusCode}`
+        //     );
+        //   } catch (err) {
+        //     console.warn(`[${alias}] ex@heartbeat, ${err.stack}`);
+        //   }
+        // }, 9000);
+      }
+
+      // 建立3個 peer connection
+      // =======================================================================
+      createPeerConnection(
+        "pptp://peer-web/user/1",
+        "pptp://edge-server/31474",
+        "browser"
+      );
+    </script>
+  </body>
+</html>
