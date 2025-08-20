@@ -63,7 +63,7 @@ class FromHereBackHandler {
   }
 }
 
-class CoreInstance {
+class FlexNet {
   //
   private _logger: any;
   private _wsserver: WSServer[] = []; // 本身作為多個 websocket server
@@ -111,7 +111,7 @@ class CoreInstance {
         if (coreOption.pptp.max_payload >= DEFAULT_DATA_SIZE.MIN) {
           this._maxChunkSize = coreOption.pptp.max_payload;
           logger.info(
-            `[core] set max payload=${this._maxChunkSize}`
+            `[flexnet] set max payload=${this._maxChunkSize}`
           );
         }
       }
@@ -139,31 +139,31 @@ class CoreInstance {
 
   private hasP2pOption(option: CoreOption): true | undefined {
     if (!option.pptp) {
-      this._logger.info("[core] pptp disabled(code=0)");
+      this._logger.info("[flexnet] pptp disabled(code=0)");
     } else if (option.pptp.enable !== 1) {
-      this._logger.info("[core] pptp disabled(code=1)");
+      this._logger.info("[flexnet] pptp disabled(code=1)");
     } else if (
       !option.pptp.ice_servers ||
       option.pptp.ice_servers.length === 0
     ) {
-      this._logger.info("[core] pptp disabled(code=2)");
+      this._logger.info("[flexnet] pptp disabled(code=2)");
     } else if (!option.pptp.signal_server) {
-      this._logger.info("[core] pptp disabled(code=3)");
+      this._logger.info("[flexnet] pptp disabled(code=3)");
     } else if (!option.pptp.peer_id) {
-      this._logger.info("[core] pptp disabled(code=4)");
+      this._logger.info("[flexnet] pptp disabled(code=4)");
     } else {
-      this._logger.info("[core] pptp peer enabled");
+      this._logger.info("[flexnet] pptp peer enabled");
       return true;
     }
   }
 
   private hasSignal(coreOption: CoreOption): true | undefined {
     if (!coreOption.signal) {
-      this._logger.info("[core] signal disabled(code=0)");
+      this._logger.info("[flexnet] signal disabled(code=0)");
     } else if (coreOption.signal.enable !== 1) {
-      this._logger.info("[core] signal disabled(code=1)");
+      this._logger.info("[flexnet] signal disabled(code=1)");
     } else {
-      this._logger.info("[core] signal server enabled");
+      this._logger.info("[flexnet] signal server enabled");
       return true;
     }
   }
@@ -252,7 +252,7 @@ class CoreInstance {
             //
             if (!fromHereBack?.socket()) {
               throw new Error(
-                `[core] miss socket, method(${message.method})`
+                `[flexnet] miss socket, method(${message.method})`
               );
             }
             // 這裡應該思考一下是否要把 fromHereBack.socket() 傳進去操作?
@@ -274,6 +274,6 @@ class CoreInstance {
       console.error(err.stack);
     }
   }
-} // -- CoreInstance
+} // -- FlexNet
 
-export default CoreInstance;
+export default FlexNet;

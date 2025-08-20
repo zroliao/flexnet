@@ -8,7 +8,7 @@ import Context, {
 import log, { LogLevel } from "electron-log";
 import * as mkdirp from "mkdirp";
 import * as fs from "fs";
-import CoreInstance from "./main-server";
+import FlexNet from "./main-server";
 import ini from "./Ini";
 
 import PluginWsc from "./plugin-wsc/index";
@@ -109,7 +109,7 @@ class MainService {
       }
     }
 
-    new CoreInstance(
+    new FlexNet(
       /* @param1 */ log,
       /* @param2 */ config.extension.core,
       /* @param3 */ path,

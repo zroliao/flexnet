@@ -7,7 +7,9 @@
     "lint": "tslint src/**/*.ts --exclude src/**/*.d.ts",
     "dev": "nodemon --watch src/**/*.ts --ignore src/**/*.spec.ts --exec ts-node index.ts",
     "build": "node build/build-script.js",
-    "postbuild": "xcopy /E /I /Y D:\\dev\\_samples\\test\\utils\\node-libdatachannel\\win64\\node_datachannel.node D:\\dev\\github\\flexnet\\dist\\core\\"
+    "run:edge": "ts-node example-edge-server.ts",
+    "run:signal": "ts-node example-signal-server.ts",
+    "postbuild": "xcopy /E /I /Y D:\\dev\\_samples\\test\\utils\\node-libdatachannel\\win64\\node_datachannel.node D:\\dev\\zroliao\\flexnet\\dist\\core\\"
   },
   "dependencies": {
     "electron-log": "4.4.1",
