@@ -1,4 +1,4 @@
-import { ProxyServer, TransportPolicy } from "./context";
+import {FlexNet} from "../types";
 
 export enum PeerState {
   connecting = "connecting",
@@ -11,22 +11,22 @@ interface PeerOption {
   remote_id: string;
   signalsrv: any;
   iceServers: string[];
-  proxyServer?: ProxyServer;
+  proxyServer?: FlexNet.ProxyServer;
   enableIceTcp?: boolean;
   portRangeBegin?: number;
   portRangeEnd?: number;
   maxMessageSize?: number;
-  iceTransportPolicy?: TransportPolicy;
+  iceTransportPolicy?: FlexNet.TransportPolicy;
 }
 
 interface RtcConfig {
   iceServers: string[];
-  proxyServer?: ProxyServer;
+  proxyServer?: FlexNet.ProxyServer;
   enableIceTcp?: boolean;
   portRangeBegin?: number;
   portRangeEnd?: number;
   maxMessageSize?: number;
-  iceTransportPolicy?: TransportPolicy;
+  iceTransportPolicy?: FlexNet.TransportPolicy;
 }
 
 class PeerDataChannel {

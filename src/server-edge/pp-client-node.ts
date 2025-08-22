@@ -1,67 +1,34 @@
-import FSM from "./fsm";
-import { Jrpc } from "./types";
+import FSM from "../utils/fsm";
+import * as ping from "ping";
 import * as WebSocket from "ws";
-import { createJrpcRequestString } from "./util";
-import { pingGoogleIsConnected } from "./util-node";
-import { getPublicIpAddress } from "./collect-info";
-import { GeoIP, ProxyServer, TransportPolicy } from "./context";
+import PeerFSM from "./edge-fsm";
+import { FlexNet, Jrpc } from "../types";
+import { getPublicIpAddress } from "../collect-info";
+import { createJrpcRequestString } from "../utils/util";
 import PeerDataChannel, { PeerState } from "./pp-datachannel-node";
 
-interface PeerOption {
-  username: string;
-  password: string;
-  peer_id: string;
-  signal_server: string;
-  ice_servers: string[];
-  proxy_server?: ProxyServer;
-  enable_ice_tcp?: boolean;
-  port_range_begin?: number;
-  port_range_end?: number;
-  max_message_size?: number;
-  ice_transport_policy?: TransportPolicy;
-  mtu?: number;
-}
-
-const PeerFSM = {
-  id: "PPTP",
-  initial: "idle",
-  states: {
-    idle: {
-      on: { CONNECT: "connecting" },
-    },
-    connecting: {
-      on: {
-        SUCCESS: "connected",
-        CLOSE: "disconnect",
-        ERROR: "disconnect",
-      },
-    },
-    connected: {
-      on: {
-        CLOSE: "idle",
-        ERROR: "disconnect",
-      },
-    },
-    disconnect: {
-      on: {
-        ERROR: "connecting",
-      },
-      after: {
-        1000: "connecting",
-      },
-    },
-  },
-};
-
 const DEFAULT_WAN_IP: string = "0.0.0.0";
+
+async function pingGoogleIsConnected(): Promise<boolean> {
+  return new Promise<boolean>((done) => {
+    const pingCfg = { timeout: 3, extra: ["-i", "1"] };
+    ping.sys.probe(
+      "google.com",
+      (isAlive: boolean) => {
+        done(isAlive);
+      },
+      pingCfg
+    );
+  });
+}
 
 class PPClient extends FSM {
   //
   private tag_: string = "[core.pptp.server]";
-  private geoip_: GeoIP | undefined;
+  private geoip_: FlexNet.GeoIP = {};
   private peers_ = {};
   private logger_: any = console;
-  private option_: PeerOption | null = null;
+  private option_: FlexNet.EdgeConfig | null = null;
   private signal_: WebSocket | null = null;
   private server_: string = "";
   private aliveTimer_: NodeJS.Timeout | null = null;
@@ -80,14 +47,12 @@ class PPClient extends FSM {
   private supericeCount_: number = 0;
 
   constructor(
-    /* @param */ option: PeerOption,
-    /* @param */ geoip: GeoIP | undefined,
+    /* @param */ option: FlexNet.EdgeConfig,
     /* @param */ logger: any = console
     /* RETURN */
   ) {
     /* ****** */
     super(PeerFSM);
-    this.geoip_ = geoip || { wanIp: DEFAULT_WAN_IP };
     this.logger_ = logger;
     this.option_ = option;
     this.server_ = `${this.option_.signal_server}/${this.option_.peer_id}`;
@@ -113,11 +78,12 @@ class PPClient extends FSM {
 
   protected stateChange(state) {
     switch (state.value) {
-      case "idle":
+      case "idle": {
         this.logger_.info(`${this.tag_} state=${state.value}`);
         if (this.signal_) this.signal_.terminate();
         break;
-      case "connecting":
+      }
+      case "connecting": {
         this.signal_ = new WebSocket(this.server_, {
           rejectUnauthorized: false,
         });
@@ -128,7 +94,8 @@ class PPClient extends FSM {
         this.signal_.onmessage = this.onSignalMessage.bind(this);
         this.signal_.on("ping", this.pong.bind(this));
         break;
-      case "connected":
+      }
+      case "connected": {
         this.logger_.info(`${this.tag_} state=${state.value}`);
         this.signalAliveTime_ = Date.now();
 
@@ -183,13 +150,16 @@ class PPClient extends FSM {
         }, this.pubipInterval_);
 
         break;
-      case "disconnect":
+      }
+      case "disconnect": {
         clearInterval(this.aliveTimer_);
         clearInterval(this.pubipTimer_);
         if (this.signal_) this.signal_.terminate();
         break;
-      default:
+      }
+      default: {
         break;
+      }
     }
   }
 

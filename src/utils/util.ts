@@ -1,4 +1,4 @@
-import { Jrpc } from "./types";
+import { Jrpc } from "../types";
 import { Snowflake } from "@theinternetfolks/snowflake";
 
 export function createJrpcNotify(
@@ -100,13 +100,4 @@ export function createJrpcResponseString(
   return JSON.stringify(
     createJrpcResponse(method, id, data, type, index, count)
   );
-}
-
-export function isJrpcGeneralMessage(message: any): boolean {
-  return message?.jsonrpc === "2.0";
-}
-
-export function isJrpcSignalMessage(message: any): boolean {
-  if (!message?.method) return false;
-  return message.method.startsWith("signal.");
 }

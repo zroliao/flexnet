@@ -1,5 +1,5 @@
+import { FlexNet } from "../types";
 import * as uWS from "uWebSockets.js";
-import { ContextPath } from "./context";
 
 class JwsServer {
   //
@@ -22,7 +22,7 @@ class JwsServer {
   constructor(
     /* @param */ port: number,
     /* @param */ logger: any,
-    /* @param */ path: ContextPath,
+    /* @param */ path: FlexNet.ContextPath,
     /* @param */ overSSL: boolean = true
   ) /* RETURN */ {
     /* ****** */

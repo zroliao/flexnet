@@ -1,6 +1,6 @@
-import FSM from "./fsm";
-import { JrpcSignal } from "./types";
-import { createJrpcRequestString } from "./util";
+import FSM from "../utils/fsm";
+import { JrpcSignal } from "../types";
+import { createJrpcRequestString } from "../utils/util";
 import PeerDataChannel, { PeerState } from "./pp-datachannel-web";
 
 interface PeerOption {

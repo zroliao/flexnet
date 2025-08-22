@@ -1,27 +1,30 @@
 import * as Assert from "assert";
-import * as extension from "./src/main";
+import FlexNet from "./src/main";
 import WsClientNode from "./src/ws-client-node";
-import { createJrpcRequestString } from "./src/util";
+import { createJrpcRequestString } from "./src/utils/util";
 
 process.env.NODE_ENV = "developer";
 
-// * NOTE: for test we don't need to use SSL connection here
-// * ==========================================================================================
-extension.default.disableSSLConnection();
-
-extension.default
-  .install(__dirname, [31474])
+new FlexNet()
+  .createEdge(__dirname, 31474, {
+    username: "37012eaa-4ef2-46d0-a079-855fceb13a29",
+    password: "49aa53b8-f965-4312-b3fc-12d21bf66103",
+    peer_id: "pptp://edge-server/31475",
+    signal_server: "ws://localhost:31473",
+    ice_servers: [
+      "stun:stun.l.google.com:19302",
+      "stun:stun1.l.google.com:19302",
+      "stun:stun2.l.google.com:19302",
+      "stun:stun3.l.google.com:19302",
+      "stun:stun4.l.google.com:19302",
+    ],
+    max_message_size: 308224,
+    port_range_begin: 1024,
+    port_range_end: 65535,
+    mtu: 1200,
+  })
   .then(async (context) => {
     context.log.info("[Extension] Running...");
-
-    // * Test with SSL connection for websocket client
-    // * on windows, setup flexnet.com into your C:\Windows\System32\drivers\etc\hosts file.
-    // * ==========================================================================================
-    // const client1: any = new WsClientNode('wss://flexnet.com:31474', undefined, context.path, async () => {/* */});
-    // const client2: any = new WsClientNode('wss://flexnet.com:31474', undefined, context.path, async () => {/* */});
-
-    // * Ttest for non ssl connection
-    // * ==========================================================================================
     const client1: any = new WsClientNode(
       "ws://localhost:31474",
       undefined,

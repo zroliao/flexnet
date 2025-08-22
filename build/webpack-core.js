@@ -10,8 +10,7 @@ const rendererConfig = {
   },
   externals: {
     'uWebSockets.js': 'uWebSockets.js',
-    './node_datachannel.node': './node_datachannel.node',
-    'pg': 'pg'
+    './node_datachannel.node': './node_datachannel.node'
   },
   module: {
     rules: [

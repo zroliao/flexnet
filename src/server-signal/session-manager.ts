@@ -1,44 +1,27 @@
-import moment = require("moment");
-import { Logger } from "../context";
-import { Jrpc, JrpcSignal } from "../types";
-import { createJrpcResponseString } from "../util";
+import { FlexNet, Jrpc, JrpcSignal } from "../types";
+import { createJrpcResponseString } from "../utils/util";
 
-interface WscOption {
+interface Options {
   version: string;
-  role: "AIS-Master" | "AIS-Slave" | "AIS-follower" | "Unknown";
-  privateIp: string;
   authenticated: boolean;
-  firstTime: string;
-  lastTime: string;
   connected: boolean;
-  retryTimes: number;
-  pingTimes: number;
-  pongTimes: number;
-  geoip?: {
-    wanIp: string;
-    country: string;
-    city: string;
-    timezone: string;
-    latitude: number;
-    longitude: number;
-  };
 }
 
 type PeerId = string; // pptp://a9999/s101/b1/2/0
-type WscMap = Map<PeerId, any>; // webSocket connections
-type OptMap = Map<PeerId, WscOption>; // more options for connections
+type SessionMap = Map<PeerId, any>; // webSocket connections
+type OptionsMap = Map<PeerId, Options>; // more options for connections
 
-class SignalServer {
+class SignalSessionManager {
   //
   private _logger: any = console;
-  private _clientConn: WscMap = new Map(); // all of the client connection
-  private _clientOpts: OptMap = new Map(); // all of the client options
+  private _clientConn: SessionMap = new Map(); // all of the client connection
+  private _clientOpts: OptionsMap = new Map(); // all of the client options
 
-  constructor(logger: Logger) {
+  constructor(logger: FlexNet.Logger) {
     this._logger = logger ? logger : console;
   }
 
-  public onJrpcMessage(
+  public onMessage(
     /* @param */ message:
       | Jrpc.Notification
       | Jrpc.Request
@@ -76,7 +59,7 @@ class SignalServer {
       this._clientConn.delete(peerId);
     }
     if (this._clientOpts.has(peerId)) {
-      const opts: WscOption = this._clientOpts.get(peerId);
+      const opts: Options = this._clientOpts.get(peerId);
       opts.authenticated = false;
       opts.connected = false;
     }
@@ -141,18 +124,11 @@ class SignalServer {
       // this.logger_.info(`debug> signal server, first time incoming session, ${ws.url}`);
       this._clientOpts.set(peerId, {
         version: message.params.version ?? "0.0.0",
-        role: "Unknown",
-        privateIp: "",
         authenticated: true,
-        firstTime: moment().format("YYYY-MM-DD HH:mm:ss"),
-        lastTime: moment().format("YYYY-MM-DD HH:mm:ss"),
         connected: true,
-        retryTimes: 1,
-        pingTimes: 0,
-        pongTimes: 0,
       });
     } else {
-      const option: WscOption = this._clientOpts.get(peerId);
+      const option: Options = this._clientOpts.get(peerId);
       option.authenticated = true;
       option.connected = true;
       option.version = message.params.version ?? "0.0.0";
@@ -180,4 +156,4 @@ class SignalServer {
   }
 }
 
-export default SignalServer;
+export default SignalSessionManager;

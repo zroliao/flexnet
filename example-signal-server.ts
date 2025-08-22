@@ -1,7 +1,7 @@
-import core from "./src/main";
-core.disableSSLConnection();
-core
-  .install(__dirname, 31473)
+import MainFlexNet from "./src/main";
+
+new MainFlexNet()
+  .createSignal(__dirname, 31473)
   .then(async (context: any) => {
     console.info(`signal-server running`);
   })

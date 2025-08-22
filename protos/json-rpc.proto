@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package rpc;
+
+// 參數類型
+enum ParamType {
+  JSON = 0;
+  BYTES = 1;
+}
+
+// 訊息類型
+enum MessageType {
+  REQUEST = 0;
+  RESPONSE = 1;
+  NOTIFY = 2;
+  SUBSCRIBE = 3;
+  UNSUBSCRIBE = 4;
+}
+
+// 封裝資料，可分片
+message ParamWrapper {
+  ParamType type = 1;       // JSON 或 Bytes
+  bytes data = 2;           // JSON 轉 UTF-8 bytes
+  bool is_chunked = 3;      // 是否為分片
+  uint32 chunk_index = 4;   // 分片索引
+  uint32 total_chunks = 5;  // 分片總數
+  string chunk_id = 6;      // 同一份資料唯一識別
+}
+
+// 通用 JSON-RPC 訊息
+message RpcMessage {
+  string jsonrpc = 1;       // 固定 "2.0"
+  MessageType msg_type = 2; // 訊息類型
+  string method = 3;        // 方法名
+  string id = 4;            // request 或 subscription id
+  ParamWrapper params = 5;  // 請求參數 / Notify / Subscribe
+  ParamWrapper result = 6;  // Response 回傳結果
+  string error = 7;         // Response 錯誤訊息
+}

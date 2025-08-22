@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as WebSocket from "ws";
-import { ContextPath, DEFAULT_DATA_SIZE, Logger } from "./context";
+import {FlexNet} from "./types";
 
 const EventType = {
   WSOCKET_DATA: "WSOCKET_DATA",
@@ -11,16 +11,16 @@ const EventType = {
 
 class WebSocketWrapper {
   private tag_: string = "[core.ws]";
-  private logger_: Logger | Console = console;
+  private logger_: FlexNet.Logger | Console = console;
   private report_: any;
   private ws_: WebSocket;
-  private path_: ContextPath;
+  private path_: FlexNet.ContextPath;
   private srvWsAddress_: string;
 
   constructor(
     /* @param */ srvWsAddress: string,
-    /* @param */ path: ContextPath,
-    /* @param */ logger: Logger,
+    /* @param */ path: FlexNet.ContextPath,
+    /* @param */ logger: FlexNet.Logger,
     /* @param */ report: any
   ) {
     this.logger_ = logger || console;
@@ -114,7 +114,7 @@ class WebSocketWrapper {
 
 class WSClient {
   //
-  private logger_: Logger;
+  private logger_: FlexNet.Logger;
   private WSC_: WebSocketWrapper | null = null;
   private protoReady_: boolean = false;
   private openCallback_: () => void;
@@ -122,14 +122,14 @@ class WSClient {
   private lossCallback_: () => void;
   private isConnected_: boolean = false;
   private hbTimer_: NodeJS.Timeout;
-  private maxPayload_: number = DEFAULT_DATA_SIZE.MAX;
+  private maxPayload_: number = FlexNet.DEFAULT_DATA_SIZE.MAX;
 
   private reopenCounter_: number = 0;
 
   constructor(
     srvWsAddress: string,
     maxPayload: number | undefined,
-    path: ContextPath,
+    path: FlexNet.ContextPath,
     openCallback: () => void,
     dataCallback: (data: any) => void,
     lossCallback?: () => void,
@@ -142,7 +142,7 @@ class WSClient {
     }, 10);
 
     if (maxPayload !== undefined) {
-      if (maxPayload >= DEFAULT_DATA_SIZE.MIN) {
+      if (maxPayload >= FlexNet.DEFAULT_DATA_SIZE.MIN) {
         this.maxPayload_ = maxPayload;
         logger.info(`[ws.node.client] set max payload=${this.maxPayload_}`);
       }
