@@ -1,6 +1,7 @@
 import FSM from "../utils/fsm";
-import { JrpcSignal } from "../types";
-import { createJrpcRequestString } from "../utils/util";
+import { RpcSignal } from "../types";
+import { uuid } from "../utils/util";
+import RpcHelper from "../rpc-helper";
 import PeerDataChannel, { PeerState } from "./pp-datachannel-web";
 
 interface PeerOption {
@@ -175,18 +176,14 @@ class PPPeer extends FSM {
 
   private onSignalOpen() {
     //
-    const params: JrpcSignal.SessionAuthParams = {
+    const params: RpcSignal.SessionAuthParams = {
       username: this.option_.username,
       password: this.option_.password,
       version: this.option_.version,
     };
 
-    const request: string =
-      createJrpcRequestString(
-        "signal.session.auth",
-        params
-      );
-
+    const method = "signal.session.auth";
+    const request = RpcHelper.createRpcJsonRequest(params, method, uuid());
     this.signal_.send(request);
     this.fsm().send("SUCCESS");
   }

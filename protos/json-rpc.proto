@@ -20,11 +20,12 @@ enum MessageType {
 // 封裝資料，可分片
 message ParamWrapper {
   ParamType type = 1;       // JSON 或 Bytes
-  bytes data = 2;           // JSON 轉 UTF-8 bytes
-  bool is_chunked = 3;      // 是否為分片
-  uint32 chunk_index = 4;   // 分片索引
-  uint32 total_chunks = 5;  // 分片總數
-  string chunk_id = 6;      // 同一份資料唯一識別
+  bytes byte = 2;           // JSON 轉 UTF-8 bytes
+  string data = 3;
+  bool is_chunked = 4;      // 是否為分片
+  uint32 chunk_index = 5;   // 分片索引
+  uint32 total_chunks = 6;  // 分片總數
+  string chunk_id = 7;      // 同一份資料唯一識別
 }
 
 // 通用 JSON-RPC 訊息

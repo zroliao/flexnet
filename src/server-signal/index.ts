@@ -1,8 +1,7 @@
+import RpcHelper from "../rpc-helper";
 import { FlexNet, Jrpc } from "../types";
 import SessionManager from "./session-manager";
 import WebSocketServer from "../server/ws-server";
-
-const txDecoder = new TextDecoder("utf-8");
 
 class SignalFlexNet {
   //
@@ -80,8 +79,12 @@ class SignalFlexNet {
     /* RETURN */
   ): Promise<void> {
     //
-    const message: Jrpc.Request = JSON.parse(txDecoder.decode(buffer));
-    this._sessionMgr.onMessage(message, ws);
+    try {
+      const message = RpcHelper.decodeRpcMessage(Buffer.from(buffer));
+      this._sessionMgr.onMessage(message, ws);
+    } catch (ex: any) {
+      this._sessionMgr.onMessage(buffer.toString(), ws);
+    }
   }
 } // -- SignalFlexNet
 

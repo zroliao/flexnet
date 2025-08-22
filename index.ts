@@ -1,7 +1,8 @@
 import * as Assert from "assert";
 import FlexNet from "./src/main";
+import { uuid } from "./src/utils/util";
+import RpcHelper from "./src/rpc-helper";
 import WsClientNode from "./src/ws-client-node";
-import { createJrpcRequestString } from "./src/utils/util";
 
 process.env.NODE_ENV = "developer";
 
@@ -45,7 +46,10 @@ new FlexNet()
     // * ////////////////////////////////////////////////////
 
     setTimeout(async () => {
-      client1.send(createJrpcRequestString("basic.server.echo", { test: 1 }));
+      const method = "basic.server.echo";
+      const params = { test: 1 };
+      const request = RpcHelper.createRpcJsonRequest(params, method, uuid());
+      client1.send(request);
       setTimeout(() => {
         console.info("all done");
         process.exit(0);

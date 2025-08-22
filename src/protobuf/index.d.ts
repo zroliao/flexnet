@@ -23,8 +23,11 @@ export namespace rpc {
         /** ParamWrapper type */
         type?: (rpc.ParamType|null);
 
+        /** ParamWrapper byte */
+        byte?: (Uint8Array|null);
+
         /** ParamWrapper data */
-        data?: (Uint8Array|null);
+        data?: (string|null);
 
         /** ParamWrapper isChunked */
         isChunked?: (boolean|null);
@@ -51,8 +54,11 @@ export namespace rpc {
         /** ParamWrapper type. */
         public type: rpc.ParamType;
 
+        /** ParamWrapper byte. */
+        public byte: Uint8Array;
+
         /** ParamWrapper data. */
-        public data: Uint8Array;
+        public data: string;
 
         /** ParamWrapper isChunked. */
         public isChunked: boolean;

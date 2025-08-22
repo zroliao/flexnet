@@ -1,5 +1,7 @@
-import { FlexNet, Jrpc, JrpcSignal } from "../types";
-import { createJrpcResponseString } from "../utils/util";
+import * as $pb from "../protobuf";
+import { uuid } from "../utils/util";
+import RpcHelper from "../rpc-helper";
+import { FlexNet, Jrpc, RpcSignal } from "../types";
 
 interface Options {
   version: string;
@@ -22,24 +24,24 @@ class SignalSessionManager {
   }
 
   public onMessage(
-    /* @param */ message:
-      | Jrpc.Notification
-      | Jrpc.Request
-      | Jrpc.Response
-      | Jrpc.Error
-      | string,
+    /* @param */ message: $pb.rpc.RpcMessage | string,
     /* @param */ ws: any | null
     /* RETURN */
   ): void {
     //
-    switch ((message as any)?.method) {
+    if (typeof message === "string") {
+      this.doGeneralMessage(JSON.parse(message), ws);
+      return;
+    }
+
+    switch (message.method) {
       case "signal.session.auth":
         this.closeOldConnection(ws);
-        this.doSessionAuth(message as JrpcSignal.SessionAuthRequest, ws);
+        this.doSessionAuth(message, ws);
         break;
       case "signal.session.alive":
         if (!this.isAuthorizedSession(ws)) return;
-        this.doSessionAlive(message as JrpcSignal.SessionAliveRequest, ws);
+        this.doSessionAlive(message, ws);
         break;
       default:
         this.doGeneralMessage(message, ws);
@@ -91,24 +93,26 @@ class SignalSessionManager {
   }
 
   private doSessionAlive(
-    /* @param */ message: JrpcSignal.SessionAliveRequest,
+    /* @param */ message: $pb.rpc.RpcMessage,
     /* @param */ ws: any
     /* RETURN */
   ): void {
     //
     if (ws.isClosed !== true) {
       const { method, id } = message;
-      ws.send(createJrpcResponseString(method, id));
+      ws.send(RpcHelper.createRpcJsonResponse({}, method, id));
     }
   }
 
   private doSessionAuth(
-    /* @param */ message: JrpcSignal.SessionAuthRequest,
+    /* @param */ message: $pb.rpc.RpcMessage,
     /* @param */ ws: any
     /* RETURN */
   ): void {
     //
-    if (!this.matchUsernamePassword(message)) {
+    if (!message.params) throw new Error("auth fail, params is empty");
+    const params = RpcHelper.fetchRpcJsonData(message);
+    if (!this.matchUsernamePassword(params)) {
       // 核實帳號密碼
       ws.close();
       throw new Error(`signal-server, username or password not match`);
@@ -123,7 +127,7 @@ class SignalSessionManager {
     if (!this._clientOpts.has(peerId)) {
       // this.logger_.info(`debug> signal server, first time incoming session, ${ws.url}`);
       this._clientOpts.set(peerId, {
-        version: message.params.version ?? "0.0.0",
+        version: params.version ?? "0.0.0",
         authenticated: true,
         connected: true,
       });
@@ -131,15 +135,15 @@ class SignalSessionManager {
       const option: Options = this._clientOpts.get(peerId);
       option.authenticated = true;
       option.connected = true;
-      option.version = message.params.version ?? "0.0.0";
+      option.version = params.version ?? "0.0.0";
       // this.logger_.info(`debug> signal server, auth success, ${ws.url}`);
     }
   }
 
-  private matchUsernamePassword(message: Jrpc.Request): boolean {
+  private matchUsernamePassword(params: RpcSignal.SessionAuthParams): boolean {
     return (
-      message.params.username === "37012eaa-4ef2-46d0-a079-855fceb13a29" &&
-      message.params.password === "49aa53b8-f965-4312-b3fc-12d21bf66103"
+      params.username === "37012eaa-4ef2-46d0-a079-855fceb13a29" &&
+      params.password === "49aa53b8-f965-4312-b3fc-12d21bf66103"
     );
   }
 

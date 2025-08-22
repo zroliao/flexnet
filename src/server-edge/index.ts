@@ -1,7 +1,7 @@
+import RpcHelper from "../rpc-helper";
 import PPClient from "./pp-client-node";
 import { FlexNet, Jrpc } from "../types";
 import WebSocketSerrver from "../server/ws-server";
-import { createJrpcResponseString } from "../utils/util";
 
 const txDecoder = new TextDecoder("utf-8");
 
@@ -83,7 +83,7 @@ class EdgeFlexNet {
   ): Promise<void> {
     //
     try {
-      const response: string = await this.recvMessage(buffer);
+      const response: Uint8Array = await this.recvMessage(buffer);
       if (ws && ws.isClosed !== true) ws.enqueue(response);
     } catch (ex: any) {
       // 再確認是否要做錯誤回應
@@ -100,7 +100,7 @@ class EdgeFlexNet {
   ): Promise<void> {
     //
     try {
-      const response: string = await this.recvMessage(buffer);
+      const response: Uint8Array = await this.recvMessage(buffer);
       peer.send(Buffer.from(response));
     } catch (ex: any) {
       // 再確認是否要做錯誤回應
@@ -110,14 +110,15 @@ class EdgeFlexNet {
   /**
    *
    */
-  private async recvMessage(buffer: any): Promise<string> {
+  private async recvMessage(buffer: any): Promise<Uint8Array> {
     //
     // FIXME: 這裡應該要實現轉拋 json-rpc 訊息到有需求的人身上
-    const message: Jrpc.Request = JSON.parse(txDecoder.decode(buffer));
-    return createJrpcResponseString(message.method, message.id, {
-      ...message.params,
-      echo: true,
-    });
+    const message = RpcHelper.decodeRpcMessage(buffer);
+    return RpcHelper.createRpcJsonResponse(
+      { ...message.params },
+      message.method,
+      message.id
+    );
   }
 } // -- FlexNet
 

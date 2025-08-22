@@ -1,10 +1,12 @@
-import FSM from "../utils/fsm";
 import * as ping from "ping";
+import FSM from "../utils/fsm";
 import * as WebSocket from "ws";
 import PeerFSM from "./edge-fsm";
+import * as $pb from "../protobuf";
+import { uuid } from "../utils/util";
+import RpcHelper from "../rpc-helper";
 import { FlexNet, Jrpc } from "../types";
 import { getPublicIpAddress } from "../collect-info";
-import { createJrpcRequestString } from "../utils/util";
 import PeerDataChannel, { PeerState } from "./pp-datachannel-node";
 
 const DEFAULT_WAN_IP: string = "0.0.0.0";
@@ -24,27 +26,27 @@ async function pingGoogleIsConnected(): Promise<boolean> {
 
 class PPClient extends FSM {
   //
-  private tag_: string = "[core.pptp.server]";
-  private geoip_: FlexNet.GeoIP = {};
-  private peers_ = {};
-  private logger_: any = console;
-  private option_: FlexNet.EdgeConfig | null = null;
-  private signal_: WebSocket | null = null;
-  private server_: string = "";
-  private aliveTimer_: NodeJS.Timeout | null = null;
-  private signalAliveTime_: number = Date.now();
-  private aliveInterval_: number = 60 * 1000; // 60 sec
+  private _tag: string = "[core.pptp.server]";
+  private _geoip: FlexNet.GeoIP = {};
+  private _peers = {};
+  private _logger: any = console;
+  private _option: FlexNet.EdgeConfig | null = null;
+  private _signal: WebSocket | null = null;
+  private _server: string = "";
+  private _aliveTimer: NodeJS.Timeout | null = null;
+  private _signalAliveTime: number = Date.now();
+  private _aliveInterval: number = 60 * 1000; // 60 sec
 
-  private myPublicIp_: string | null = null;
-  private pubipTimer_: NodeJS.Timeout | null = null; // interval updater
-  private pubipInterval_: number = 15 * 60 * 1000; // 15 min
+  private _myPublicIp: string | null = null;
+  private _pubipTimer: NodeJS.Timeout | null = null; // interval updater
+  private _pubipInterval: number = 15 * 60 * 1000; // 15 min
 
-  private datareceive_: any;
+  private _datareceive: any;
 
-  private lastRecvSvrPing_: number = Date.now();
+  private _lastRecvSvrPing: number = Date.now();
 
-  private supericeValue_: number = 5;
-  private supericeCount_: number = 0;
+  private _supericeValue: number = 5;
+  private _supericeCount: number = 0;
 
   constructor(
     /* @param */ option: FlexNet.EdgeConfig,
@@ -53,14 +55,14 @@ class PPClient extends FSM {
   ) {
     /* ****** */
     super(PeerFSM);
-    this.logger_ = logger;
-    this.option_ = option;
-    this.server_ = `${this.option_.signal_server}/${this.option_.peer_id}`;
+    this._logger = logger;
+    this._option = option;
+    this._server = `${this._option.signal_server}/${this._option.peer_id}`;
     this.startFsm();
   }
 
   public datareceive(callback) {
-    this.datareceive_ = callback;
+    this._datareceive = callback;
   }
 
   public connect(): boolean {
@@ -69,9 +71,9 @@ class PPClient extends FSM {
   }
 
   public sendByWish(event: string, buffer: string | Buffer) {
-    const keys = Object.keys(this.peers_);
+    const keys = Object.keys(this._peers);
     keys.forEach((key: string) => {
-      const peer: PeerDataChannel = this.peers_[key];
+      const peer: PeerDataChannel = this._peers[key];
       if (peer.isYourWish(event)) peer.send(buffer);
     });
   }
@@ -79,82 +81,45 @@ class PPClient extends FSM {
   protected stateChange(state) {
     switch (state.value) {
       case "idle": {
-        this.logger_.info(`${this.tag_} state=${state.value}`);
-        if (this.signal_) this.signal_.terminate();
+        this._logger.info(`${this._tag} state=${state.value}`);
+        if (this._signal) this._signal.terminate();
         break;
       }
       case "connecting": {
-        this.signal_ = new WebSocket(this.server_, {
+        this._signal = new WebSocket(this._server, {
           rejectUnauthorized: false,
         });
-        this.signal_.binaryType = "arraybuffer";
-        this.signal_.onopen = this.onSignalOpen.bind(this);
-        this.signal_.onclose = this.onSignalClose.bind(this);
-        this.signal_.onerror = this.onSignalError.bind(this);
-        this.signal_.onmessage = this.onSignalMessage.bind(this);
-        this.signal_.on("ping", this.pong.bind(this));
+        this._signal.binaryType = "arraybuffer";
+        this._signal.onopen = this.onSignalOpen.bind(this);
+        this._signal.onclose = this.onSignalClose.bind(this);
+        this._signal.onerror = this.onSignalError.bind(this);
+        this._signal.onmessage = this.onSignalMessage.bind(this);
+        this._signal.on("ping", this.pong.bind(this));
         break;
       }
       case "connected": {
-        this.logger_.info(`${this.tag_} state=${state.value}`);
-        this.signalAliveTime_ = Date.now();
+        this._logger.info(`${this._tag} state=${state.value}`);
+        this._signalAliveTime = Date.now();
 
-        this.aliveTimer_ = setInterval(() => {
-          //
-          // 送出 session alive
-          this.logger_.info(`>>>送出時間: ${Date.now()}`);
-          this.signal_.send(
-            createJrpcRequestString("signal.session.alive"),
-            (err?: Error) => {
-              if (!err) return;
-              this.logger_.warn(
-                `${this.tag_} send @alive fail. ${err.message}`
-              );
-              this.fsm().send("ERROR");
-              return;
-            }
-          );
-          //
-          // 確認 timeout
-          const isTimeout: boolean =
-            Date.now() - this.signalAliveTime_ > this.aliveInterval_ + 5000;
-          if (isTimeout) {
-            this.logger_.info(`>>>現在時間:${Date.now()}`);
-            this.logger_.info(`>>>最後時間:${this.signalAliveTime_}`);
-            this.logger_.info(
-              `>>>相差時間:${Date.now() - this.signalAliveTime_}`
-            );
-            this.logger_.info(`>>>`);
-            this.logger_.warn(`${this.tag_} signal server timeout happened.`);
-            this.fsm().send("ERROR");
-            return;
-          }
-          //
-          // 確認長期沒有收到 ping
-          if (Date.now() - this.lastRecvSvrPing_ > 700 * 1000 * 1000) {
-            this.logger_.error(
-              `${this.tag_} long time not receive server ping.`
-            );
-            this.exitProcess(1);
-            return;
-          }
-          //
-        }, this.aliveInterval_);
+        this._aliveTimer = setInterval(
+          this.tryKeepAlive.bind(this),
+          this._aliveInterval
+        );
 
-        this.pubipTimer_ = setInterval(async () => {
+        this._pubipTimer = setInterval(async () => {
           if (!(await pingGoogleIsConnected())) return;
           const ip: string | null = await getPublicIpAddress();
-          if (ip === null || ip === this.myPublicIp_) return;
-          this.logger_.info(`${this.tag_} detect external ip changed`);
+          if (ip === null || ip === this._myPublicIp) return;
+          this._logger.info(`${this._tag} detect external ip changed`);
           this.fsm().send("ERROR");
-        }, this.pubipInterval_);
+        }, this._pubipInterval);
 
         break;
       }
       case "disconnect": {
-        clearInterval(this.aliveTimer_);
-        clearInterval(this.pubipTimer_);
-        if (this.signal_) this.signal_.terminate();
+        clearInterval(this._aliveTimer);
+        clearInterval(this._pubipTimer);
+        if (this._signal) this._signal.terminate();
         break;
       }
       default: {
@@ -164,14 +129,14 @@ class PPClient extends FSM {
   }
 
   private async exitProcess(errcode: number) {
-    this.logger_.warn(`${this.tag_} prepare for exit process(err:${errcode})`);
+    this._logger.warn(`${this._tag} prepare for exit process(err:${errcode})`);
     if (!(await pingGoogleIsConnected())) {
-      this.logger_.warn(
-        `${this.tag_} ignore process exit, you lost internet(err:${errcode})`
+      this._logger.warn(
+        `${this._tag} ignore process exit, you lost internet(err:${errcode})`
       );
     } else {
-      this.logger_.warn(
-        `${this.tag_} detect pptp error, force exit process.(err:${errcode})`
+      this._logger.warn(
+        `${this._tag} detect pptp error, force exit process.(err:${errcode})`
       );
       setTimeout(() => {
         process.exit(errcode);
@@ -183,104 +148,135 @@ class PPClient extends FSM {
     try {
       if (
         this.state() !== "connected" &&
-        this.supericeCount_ < this.supericeValue_
+        this._supericeCount < this._supericeValue
       ) {
-        this.supericeCount_++;
-        this.logger_.warn(
-          `${this.tag_} detect state machine error, count(${this.supericeCount_})`
+        this._supericeCount++;
+        this._logger.warn(
+          `${this._tag} detect state machine error, count(${this._supericeCount})`
         );
         return;
       } else if (this.state() !== "connected") {
         this.exitProcess(1);
       } else {
-        this.logger_.info(`${this.tag_} receive ping callback`);
-        this.lastRecvSvrPing_ = Date.now();
-        if (this.signal_) this.signal_.pong();
+        this._logger.info(`${this._tag} receive ping callback`);
+        this._lastRecvSvrPing = Date.now();
+        if (this._signal) this._signal.pong();
       }
     } catch (ex: any) {
       // nothing to do
     }
   }
 
-  private async onSignalOpen() {
+  private tryKeepAlive() {
+    //
+    const onerror = (err?: Error) => {
+      if (!err) return;
+      this._logger.warn(`${this._tag} send @alive fail. ${err.message}`);
+      this.fsm().send("ERROR");
+      return;
+    };
+
+    this._logger.info(`>>>送出時間: ${Date.now()}`);
+
+    const method = "signal.session.alive";
+    const request = RpcHelper.createRpcJsonNotify({}, method);
+    this._signal.send(request, onerror);
+    //
+    // 確認 timeout
+    const isTimeout: boolean =
+      Date.now() - this._signalAliveTime > this._aliveInterval + 5000;
+    if (isTimeout) {
+      this._logger.info(`>>>現在時間:${Date.now()}`);
+      this._logger.info(`>>>最後時間:${this._signalAliveTime}`);
+      this._logger.info(`>>>相差時間:${Date.now() - this._signalAliveTime}`);
+      this._logger.info(`>>>`);
+      this._logger.warn(`${this._tag} signal server timeout happened.`);
+      this.fsm().send("ERROR");
+      return;
+    }
+    //
+    // 確認長期沒有收到 ping
+    if (Date.now() - this._lastRecvSvrPing > 700 * 1000 * 1000) {
+      this._logger.error(`${this._tag} long time not receive server ping.`);
+      this.exitProcess(1);
+      return;
+    }
+    //
+  }
+
+  private async tryUpdateGeo() {
     let ip: string = DEFAULT_WAN_IP;
     if (await pingGoogleIsConnected()) {
       ip = await getPublicIpAddress();
-      if (ip !== null) this.geoip_.wanIp = ip;
-      else this.logger_.warn(`${this.tag_} get public ip fail(${ip})`);
-    } else if (!this.geoip_?.wanIp) {
-      this.geoip_.wanIp = DEFAULT_WAN_IP;
+      if (ip !== null) this._geoip.wanIp = ip;
+      else this._logger.warn(`${this._tag} get public ip fail(${ip})`);
+    } else if (!this._geoip?.wanIp) {
+      this._geoip.wanIp = DEFAULT_WAN_IP;
     }
+    this._myPublicIp = this._geoip.wanIp || ip;
+  }
 
-    this.myPublicIp_ = this.geoip_.wanIp || ip;
-
-    const request: string = createJrpcRequestString("signal.session.auth", {
+  private async onSignalOpen() {
+    await this.tryUpdateGeo();
+    const method = "signal.session.auth";
+    const payload = {
       version: "x.x.x",
-      username: this.option_.username,
-      password: this.option_.password,
-    });
+      username: this._option.username,
+      password: this._option.password,
+    };
+    const request = RpcHelper.createRpcJsonRequest(payload, method, uuid());
 
     const onerror = (err?: Error) => {
       if (!err) return;
-      this.logger_.warn(`${this.tag_} auth fail, ${err.message}`);
+      this._logger.warn(`${this._tag} auth fail, ${err.message}`);
       this.fsm().send("ERROR");
     };
 
-    this.signal_.send(request, onerror);
+    this._signal.send(request, onerror);
     this.fsm().send("SUCCESS");
   }
 
   private onSignalClose() {
-    this.logger_.warn(`${this.tag_} detect signal server connection close`);
+    this._logger.warn(`${this._tag} detect signal server connection close`);
     this.fsm().send("ERROR");
   }
 
   private onSignalError(err: any) {
-    this.logger_.warn(`${this.tag_} signal server error(${err?.message})`);
+    this._logger.warn(`${this._tag} signal server error(${err?.message})`);
     this.fsm().send("ERROR");
-  }
-
-  private handleJsonrpc(message: Jrpc.Message) {
-    switch (message.method) {
-      case "signal.session.alive":
-        this.signalAliveTime_ = Date.now();
-        break;
-      default:
-        break;
-    }
   }
 
   private handleWebrtc(message: any) {
     switch (message.type) {
       case "offer":
-        this.peers_[message.id] = new PeerDataChannel(
+        this._peers[message.id] = new PeerDataChannel(
           {
             remote_id: message.id,
-            signalsrv: this.signal_,
-            iceServers: this.option_.ice_servers,
-            proxyServer: this.option_.proxy_server,
-            enableIceTcp: this.option_.enable_ice_tcp,
-            portRangeBegin: this.option_.port_range_begin || 1024,
-            portRangeEnd: this.option_.port_range_end || 65535,
-            maxMessageSize: this.option_.max_message_size || 256 * 1024,
-            iceTransportPolicy: this.option_.ice_transport_policy,
-            mtu: this.option_.mtu || 1200,
+            signalsrv: this._signal,
+            iceServers: this._option.ice_servers,
+            proxyServer: this._option.proxy_server,
+            enableIceTcp: this._option.enable_ice_tcp,
+            portRangeBegin: this._option.port_range_begin || 1024,
+            portRangeEnd: this._option.port_range_end || 65535,
+            maxMessageSize: this._option.max_message_size || 256 * 1024,
+            iceTransportPolicy: this._option.ice_transport_policy,
+            mtu: this._option.mtu || 1200,
           } as any,
-          this.logger_
+          this._logger
         );
-        this.peers_[message.id].statechange(this.peerStateChange.bind(this));
-        this.peers_[message.id].datareceive(this.peerDataReceive.bind(this));
-        this.peers_[message.id]
+        this._peers[message.id].statechange(this.peerStateChange.bind(this));
+        this._peers[message.id].datareceive(this.peerDataReceive.bind(this));
+        this._peers[message.id]
           .peer()
           .setRemoteDescription(message.description, message.type);
         break;
       case "answer":
-        this.peers_[message.id]
+        this._peers[message.id]
           .peer()
           .setRemoteDescription(message.description, message.type);
         break;
       case "candidate":
-        this.peers_[message.id]
+        this._peers[message.id]
           .peer()
           .addRemoteCandidate(message.candidate, message.mid);
         break;
@@ -291,21 +287,30 @@ class PPClient extends FSM {
 
   private onSignalMessage(input: MessageEvent) {
     try {
-      const message = JSON.parse(input.data);
-      if (message.jsonrpc === "2.0") {
-        this.handleJsonrpc(message);
-      } else {
-        this.handleWebrtc(message);
+      const decRpcM = RpcHelper.decodeRpcMessage(Buffer.from(input.data));
+
+      switch (decRpcM.msgType) {
+        case $pb.rpc.MessageType.REQUEST:
+        case $pb.rpc.MessageType.RESPONSE:
+        case $pb.rpc.MessageType.NOTIFY:
+          if (decRpcM.method === "signal.session.alive") {
+            this._signalAliveTime = Date.now();
+          }
+          break;
+        case $pb.rpc.MessageType.SUBSCRIBE:
+        case $pb.rpc.MessageType.UNSUBSCRIBE:
+        default:
+          break;
       }
     } catch (ex) {
-      console.error(ex.stack);
+      this.handleWebrtc(JSON.parse(input.data));
     }
   }
 
   private peerStateChange(state: PeerState, remoteId: string) {
     switch (state) {
       case PeerState.disconnected:
-        delete this.peers_[remoteId];
+        delete this._peers[remoteId];
         break;
       default:
         break;
@@ -314,8 +319,8 @@ class PPClient extends FSM {
 
   private async peerDataReceive(buffer: Buffer, remoteId: string) {
     try {
-      if (this.datareceive_) {
-        await this.datareceive_(buffer, this.peers_[remoteId]);
+      if (this._datareceive) {
+        await this._datareceive(buffer, this._peers[remoteId]);
       }
     } catch (e) {
       console.error(e.stack);

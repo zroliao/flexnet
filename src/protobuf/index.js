@@ -59,7 +59,8 @@ $root.rpc = (function() {
          * @memberof rpc
          * @interface IParamWrapper
          * @property {rpc.ParamType|null} [type] ParamWrapper type
-         * @property {Uint8Array|null} [data] ParamWrapper data
+         * @property {Uint8Array|null} [byte] ParamWrapper byte
+         * @property {string|null} [data] ParamWrapper data
          * @property {boolean|null} [isChunked] ParamWrapper isChunked
          * @property {number|null} [chunkIndex] ParamWrapper chunkIndex
          * @property {number|null} [totalChunks] ParamWrapper totalChunks
@@ -90,12 +91,20 @@ $root.rpc = (function() {
         ParamWrapper.prototype.type = 0;
 
         /**
-         * ParamWrapper data.
-         * @member {Uint8Array} data
+         * ParamWrapper byte.
+         * @member {Uint8Array} byte
          * @memberof rpc.ParamWrapper
          * @instance
          */
-        ParamWrapper.prototype.data = $util.newBuffer([]);
+        ParamWrapper.prototype.byte = $util.newBuffer([]);
+
+        /**
+         * ParamWrapper data.
+         * @member {string} data
+         * @memberof rpc.ParamWrapper
+         * @instance
+         */
+        ParamWrapper.prototype.data = "";
 
         /**
          * ParamWrapper isChunked.
@@ -155,16 +164,18 @@ $root.rpc = (function() {
                 writer = $Writer.create();
             if (message.type != null && Object.hasOwnProperty.call(message, "type"))
                 writer.uint32(/* id 1, wireType 0 =*/8).int32(message.type);
+            if (message.byte != null && Object.hasOwnProperty.call(message, "byte"))
+                writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.byte);
             if (message.data != null && Object.hasOwnProperty.call(message, "data"))
-                writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.data);
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.data);
             if (message.isChunked != null && Object.hasOwnProperty.call(message, "isChunked"))
-                writer.uint32(/* id 3, wireType 0 =*/24).bool(message.isChunked);
+                writer.uint32(/* id 4, wireType 0 =*/32).bool(message.isChunked);
             if (message.chunkIndex != null && Object.hasOwnProperty.call(message, "chunkIndex"))
-                writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.chunkIndex);
+                writer.uint32(/* id 5, wireType 0 =*/40).uint32(message.chunkIndex);
             if (message.totalChunks != null && Object.hasOwnProperty.call(message, "totalChunks"))
-                writer.uint32(/* id 5, wireType 0 =*/40).uint32(message.totalChunks);
+                writer.uint32(/* id 6, wireType 0 =*/48).uint32(message.totalChunks);
             if (message.chunkId != null && Object.hasOwnProperty.call(message, "chunkId"))
-                writer.uint32(/* id 6, wireType 2 =*/50).string(message.chunkId);
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.chunkId);
             return writer;
         };
 
@@ -203,18 +214,21 @@ $root.rpc = (function() {
                     message.type = reader.int32();
                     break;
                 case 2:
-                    message.data = reader.bytes();
+                    message.byte = reader.bytes();
                     break;
                 case 3:
-                    message.isChunked = reader.bool();
+                    message.data = reader.string();
                     break;
                 case 4:
-                    message.chunkIndex = reader.uint32();
+                    message.isChunked = reader.bool();
                     break;
                 case 5:
-                    message.totalChunks = reader.uint32();
+                    message.chunkIndex = reader.uint32();
                     break;
                 case 6:
+                    message.totalChunks = reader.uint32();
+                    break;
+                case 7:
                     message.chunkId = reader.string();
                     break;
                 default:
@@ -260,9 +274,12 @@ $root.rpc = (function() {
                 case 1:
                     break;
                 }
+            if (message.byte != null && message.hasOwnProperty("byte"))
+                if (!(message.byte && typeof message.byte.length === "number" || $util.isString(message.byte)))
+                    return "byte: buffer expected";
             if (message.data != null && message.hasOwnProperty("data"))
-                if (!(message.data && typeof message.data.length === "number" || $util.isString(message.data)))
-                    return "data: buffer expected";
+                if (!$util.isString(message.data))
+                    return "data: string expected";
             if (message.isChunked != null && message.hasOwnProperty("isChunked"))
                 if (typeof message.isChunked !== "boolean")
                     return "isChunked: boolean expected";
@@ -300,11 +317,13 @@ $root.rpc = (function() {
                 message.type = 1;
                 break;
             }
+            if (object.byte != null)
+                if (typeof object.byte === "string")
+                    $util.base64.decode(object.byte, message.byte = $util.newBuffer($util.base64.length(object.byte)), 0);
+                else if (object.byte.length)
+                    message.byte = object.byte;
             if (object.data != null)
-                if (typeof object.data === "string")
-                    $util.base64.decode(object.data, message.data = $util.newBuffer($util.base64.length(object.data)), 0);
-                else if (object.data.length)
-                    message.data = object.data;
+                message.data = String(object.data);
             if (object.isChunked != null)
                 message.isChunked = Boolean(object.isChunked);
             if (object.chunkIndex != null)
@@ -332,12 +351,13 @@ $root.rpc = (function() {
             if (options.defaults) {
                 object.type = options.enums === String ? "JSON" : 0;
                 if (options.bytes === String)
-                    object.data = "";
+                    object.byte = "";
                 else {
-                    object.data = [];
+                    object.byte = [];
                     if (options.bytes !== Array)
-                        object.data = $util.newBuffer(object.data);
+                        object.byte = $util.newBuffer(object.byte);
                 }
+                object.data = "";
                 object.isChunked = false;
                 object.chunkIndex = 0;
                 object.totalChunks = 0;
@@ -345,8 +365,10 @@ $root.rpc = (function() {
             }
             if (message.type != null && message.hasOwnProperty("type"))
                 object.type = options.enums === String ? $root.rpc.ParamType[message.type] : message.type;
+            if (message.byte != null && message.hasOwnProperty("byte"))
+                object.byte = options.bytes === String ? $util.base64.encode(message.byte, 0, message.byte.length) : options.bytes === Array ? Array.prototype.slice.call(message.byte) : message.byte;
             if (message.data != null && message.hasOwnProperty("data"))
-                object.data = options.bytes === String ? $util.base64.encode(message.data, 0, message.data.length) : options.bytes === Array ? Array.prototype.slice.call(message.data) : message.data;
+                object.data = message.data;
             if (message.isChunked != null && message.hasOwnProperty("isChunked"))
                 object.isChunked = message.isChunked;
             if (message.chunkIndex != null && message.hasOwnProperty("chunkIndex"))
