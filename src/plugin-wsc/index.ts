@@ -1,5 +1,5 @@
 import {FlexNet} from "../types";
-import NodeWsClient from "../ws-client-node";
+import NodeWsClient from "../client-edge/ws-client-node";
 
 interface Logger {
   info: (str: any) => void;

@@ -394,6 +394,216 @@ $root.rpc = (function() {
         return ParamWrapper;
     })();
 
+    rpc.ErrorWrapper = (function() {
+
+        /**
+         * Properties of an ErrorWrapper.
+         * @memberof rpc
+         * @interface IErrorWrapper
+         * @property {number|null} [code] ErrorWrapper code
+         * @property {string|null} [message] ErrorWrapper message
+         */
+
+        /**
+         * Constructs a new ErrorWrapper.
+         * @memberof rpc
+         * @classdesc Represents an ErrorWrapper.
+         * @implements IErrorWrapper
+         * @constructor
+         * @param {rpc.IErrorWrapper=} [properties] Properties to set
+         */
+        function ErrorWrapper(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * ErrorWrapper code.
+         * @member {number} code
+         * @memberof rpc.ErrorWrapper
+         * @instance
+         */
+        ErrorWrapper.prototype.code = 0;
+
+        /**
+         * ErrorWrapper message.
+         * @member {string} message
+         * @memberof rpc.ErrorWrapper
+         * @instance
+         */
+        ErrorWrapper.prototype.message = "";
+
+        /**
+         * Creates a new ErrorWrapper instance using the specified properties.
+         * @function create
+         * @memberof rpc.ErrorWrapper
+         * @static
+         * @param {rpc.IErrorWrapper=} [properties] Properties to set
+         * @returns {rpc.ErrorWrapper} ErrorWrapper instance
+         */
+        ErrorWrapper.create = function create(properties) {
+            return new ErrorWrapper(properties);
+        };
+
+        /**
+         * Encodes the specified ErrorWrapper message. Does not implicitly {@link rpc.ErrorWrapper.verify|verify} messages.
+         * @function encode
+         * @memberof rpc.ErrorWrapper
+         * @static
+         * @param {rpc.IErrorWrapper} message ErrorWrapper message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ErrorWrapper.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.code != null && Object.hasOwnProperty.call(message, "code"))
+                writer.uint32(/* id 1, wireType 0 =*/8).int32(message.code);
+            if (message.message != null && Object.hasOwnProperty.call(message, "message"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.message);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified ErrorWrapper message, length delimited. Does not implicitly {@link rpc.ErrorWrapper.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof rpc.ErrorWrapper
+         * @static
+         * @param {rpc.IErrorWrapper} message ErrorWrapper message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ErrorWrapper.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes an ErrorWrapper message from the specified reader or buffer.
+         * @function decode
+         * @memberof rpc.ErrorWrapper
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {rpc.ErrorWrapper} ErrorWrapper
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ErrorWrapper.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.rpc.ErrorWrapper();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.code = reader.int32();
+                    break;
+                case 2:
+                    message.message = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes an ErrorWrapper message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof rpc.ErrorWrapper
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {rpc.ErrorWrapper} ErrorWrapper
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ErrorWrapper.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies an ErrorWrapper message.
+         * @function verify
+         * @memberof rpc.ErrorWrapper
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        ErrorWrapper.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.code != null && message.hasOwnProperty("code"))
+                if (!$util.isInteger(message.code))
+                    return "code: integer expected";
+            if (message.message != null && message.hasOwnProperty("message"))
+                if (!$util.isString(message.message))
+                    return "message: string expected";
+            return null;
+        };
+
+        /**
+         * Creates an ErrorWrapper message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof rpc.ErrorWrapper
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {rpc.ErrorWrapper} ErrorWrapper
+         */
+        ErrorWrapper.fromObject = function fromObject(object) {
+            if (object instanceof $root.rpc.ErrorWrapper)
+                return object;
+            var message = new $root.rpc.ErrorWrapper();
+            if (object.code != null)
+                message.code = object.code | 0;
+            if (object.message != null)
+                message.message = String(object.message);
+            return message;
+        };
+
+        /**
+         * Creates a plain object from an ErrorWrapper message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof rpc.ErrorWrapper
+         * @static
+         * @param {rpc.ErrorWrapper} message ErrorWrapper
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        ErrorWrapper.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.defaults) {
+                object.code = 0;
+                object.message = "";
+            }
+            if (message.code != null && message.hasOwnProperty("code"))
+                object.code = message.code;
+            if (message.message != null && message.hasOwnProperty("message"))
+                object.message = message.message;
+            return object;
+        };
+
+        /**
+         * Converts this ErrorWrapper to JSON.
+         * @function toJSON
+         * @memberof rpc.ErrorWrapper
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        ErrorWrapper.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return ErrorWrapper;
+    })();
+
     rpc.RpcMessage = (function() {
 
         /**
@@ -406,7 +616,7 @@ $root.rpc = (function() {
          * @property {string|null} [id] RpcMessage id
          * @property {rpc.IParamWrapper|null} [params] RpcMessage params
          * @property {rpc.IParamWrapper|null} [result] RpcMessage result
-         * @property {string|null} [error] RpcMessage error
+         * @property {rpc.IErrorWrapper|null} [error] RpcMessage error
          */
 
         /**
@@ -474,11 +684,11 @@ $root.rpc = (function() {
 
         /**
          * RpcMessage error.
-         * @member {string} error
+         * @member {rpc.IErrorWrapper|null|undefined} error
          * @memberof rpc.RpcMessage
          * @instance
          */
-        RpcMessage.prototype.error = "";
+        RpcMessage.prototype.error = null;
 
         /**
          * Creates a new RpcMessage instance using the specified properties.
@@ -517,7 +727,7 @@ $root.rpc = (function() {
             if (message.result != null && Object.hasOwnProperty.call(message, "result"))
                 $root.rpc.ParamWrapper.encode(message.result, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
             if (message.error != null && Object.hasOwnProperty.call(message, "error"))
-                writer.uint32(/* id 7, wireType 2 =*/58).string(message.error);
+                $root.rpc.ErrorWrapper.encode(message.error, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
             return writer;
         };
 
@@ -571,7 +781,7 @@ $root.rpc = (function() {
                     message.result = $root.rpc.ParamWrapper.decode(reader, reader.uint32());
                     break;
                 case 7:
-                    message.error = reader.string();
+                    message.error = $root.rpc.ErrorWrapper.decode(reader, reader.uint32());
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -638,9 +848,11 @@ $root.rpc = (function() {
                 if (error)
                     return "result." + error;
             }
-            if (message.error != null && message.hasOwnProperty("error"))
-                if (!$util.isString(message.error))
-                    return "error: string expected";
+            if (message.error != null && message.hasOwnProperty("error")) {
+                var error = $root.rpc.ErrorWrapper.verify(message.error);
+                if (error)
+                    return "error." + error;
+            }
             return null;
         };
 
@@ -694,8 +906,11 @@ $root.rpc = (function() {
                     throw TypeError(".rpc.RpcMessage.result: object expected");
                 message.result = $root.rpc.ParamWrapper.fromObject(object.result);
             }
-            if (object.error != null)
-                message.error = String(object.error);
+            if (object.error != null) {
+                if (typeof object.error !== "object")
+                    throw TypeError(".rpc.RpcMessage.error: object expected");
+                message.error = $root.rpc.ErrorWrapper.fromObject(object.error);
+            }
             return message;
         };
 
@@ -719,7 +934,7 @@ $root.rpc = (function() {
                 object.id = "";
                 object.params = null;
                 object.result = null;
-                object.error = "";
+                object.error = null;
             }
             if (message.jsonrpc != null && message.hasOwnProperty("jsonrpc"))
                 object.jsonrpc = message.jsonrpc;
@@ -734,7 +949,7 @@ $root.rpc = (function() {
             if (message.result != null && message.hasOwnProperty("result"))
                 object.result = $root.rpc.ParamWrapper.toObject(message.result, options);
             if (message.error != null && message.hasOwnProperty("error"))
-                object.error = message.error;
+                object.error = $root.rpc.ErrorWrapper.toObject(message.error, options);
             return object;
         };
 

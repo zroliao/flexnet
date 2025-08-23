@@ -1,33 +1,34 @@
+import { FlexNet } from "../types";
 import RpcHelper from "../rpc-helper";
 import PPClient from "./pp-client-node";
-import { FlexNet, Jrpc } from "../types";
+import EdgeTransport from "./edge-transport";
 import WebSocketSerrver from "../server/ws-server";
-
-const txDecoder = new TextDecoder("utf-8");
 
 class EdgeFlexNet {
   //
   private _logger: any;
   private _ppclient: PPClient;
+  private _transport: EdgeTransport;
   private _wsServer: WebSocketSerrver;
   private _maxChunkSize: number = FlexNet.DEFAULT_DATA_SIZE.MAX;
 
   constructor(
-    /* @param */ logger: FlexNet.Logger,
+    /* @param */ context: FlexNet.Context,
+    /* @param */ transport: EdgeTransport,
     /* @param */ baseConfig: FlexNet.BaseConfig,
     /* @param */ edgeConfig: FlexNet.EdgeConfig,
-    /* @param */ path: FlexNet.ContextPath,
     /* @param */ overSSL: boolean = true
   ) {
-    if (!logger) throw new Error("invalid logger instance");
-    else this._logger = logger;
+    //
+    this._logger = context.log;
+    this._transport = transport;
 
     // ——————————————————————————————————————————————————————
 
     const wsServer: WebSocketSerrver = new WebSocketSerrver(
       +baseConfig.service.port,
       this._logger,
-      path,
+      context.path,
       overSSL
     );
 
@@ -48,7 +49,9 @@ class EdgeFlexNet {
     if (edgeConfig.max_payload !== undefined) {
       if (edgeConfig.max_payload >= FlexNet.DEFAULT_DATA_SIZE.MIN) {
         this._maxChunkSize = edgeConfig.max_payload;
-        logger.info(`[edge.flexnet] set max payload=${this._maxChunkSize}`);
+        this._logger.info(
+          `[edge.flexnet] set max payload=${this._maxChunkSize}`
+        );
       }
     }
 
@@ -83,7 +86,8 @@ class EdgeFlexNet {
   ): Promise<void> {
     //
     try {
-      const response: Uint8Array = await this.recvMessage(buffer);
+      const response = await this.recvMessage(buffer);
+      if (response === undefined) return;
       if (ws && ws.isClosed !== true) ws.enqueue(response);
     } catch (ex: any) {
       // 再確認是否要做錯誤回應
@@ -100,7 +104,8 @@ class EdgeFlexNet {
   ): Promise<void> {
     //
     try {
-      const response: Uint8Array = await this.recvMessage(buffer);
+      const response = await this.recvMessage(buffer);
+      if (response === undefined) return;
       peer.send(Buffer.from(response));
     } catch (ex: any) {
       // 再確認是否要做錯誤回應
@@ -110,15 +115,16 @@ class EdgeFlexNet {
   /**
    *
    */
-  private async recvMessage(buffer: any): Promise<Uint8Array> {
+  private async recvMessage(buffer: any): Promise<Uint8Array | undefined> {
     //
     // FIXME: 這裡應該要實現轉拋 json-rpc 訊息到有需求的人身上
     const message = RpcHelper.decodeRpcMessage(buffer);
-    return RpcHelper.createRpcJsonResponse(
-      { ...message.params },
-      message.method,
-      message.id
-    );
+    if ((message as any).msgType === "NOTIFY") {
+      this._transport.notify(message);
+      return undefined;
+    } else {
+      return await this._transport.dispatch(message);
+    }
   }
 } // -- FlexNet
 

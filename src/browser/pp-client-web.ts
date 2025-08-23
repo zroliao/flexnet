@@ -105,6 +105,11 @@ class PPClient {
     this.PC_.close();
   }
 
+  public send(data) {
+    if (!this.PC_) throw new Error(`peer connection not exist`);
+    this.PC_.send(data);
+  }
+
   private forwardMsg(event: any) {
     try {
       if (this.dataCallback_) this.dataCallback_(event?.data);

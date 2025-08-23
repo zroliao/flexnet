@@ -143,6 +143,102 @@ export namespace rpc {
         public toJSON(): { [k: string]: any };
     }
 
+    /** Properties of an ErrorWrapper. */
+    interface IErrorWrapper {
+
+        /** ErrorWrapper code */
+        code?: (number|null);
+
+        /** ErrorWrapper message */
+        message?: (string|null);
+    }
+
+    /** Represents an ErrorWrapper. */
+    class ErrorWrapper implements IErrorWrapper {
+
+        /**
+         * Constructs a new ErrorWrapper.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: rpc.IErrorWrapper);
+
+        /** ErrorWrapper code. */
+        public code: number;
+
+        /** ErrorWrapper message. */
+        public message: string;
+
+        /**
+         * Creates a new ErrorWrapper instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns ErrorWrapper instance
+         */
+        public static create(properties?: rpc.IErrorWrapper): rpc.ErrorWrapper;
+
+        /**
+         * Encodes the specified ErrorWrapper message. Does not implicitly {@link rpc.ErrorWrapper.verify|verify} messages.
+         * @param message ErrorWrapper message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: rpc.IErrorWrapper, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Encodes the specified ErrorWrapper message, length delimited. Does not implicitly {@link rpc.ErrorWrapper.verify|verify} messages.
+         * @param message ErrorWrapper message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encodeDelimited(message: rpc.IErrorWrapper, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes an ErrorWrapper message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns ErrorWrapper
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): rpc.ErrorWrapper;
+
+        /**
+         * Decodes an ErrorWrapper message from the specified reader or buffer, length delimited.
+         * @param reader Reader or buffer to decode from
+         * @returns ErrorWrapper
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): rpc.ErrorWrapper;
+
+        /**
+         * Verifies an ErrorWrapper message.
+         * @param message Plain object to verify
+         * @returns `null` if valid, otherwise the reason why it is not
+         */
+        public static verify(message: { [k: string]: any }): (string|null);
+
+        /**
+         * Creates an ErrorWrapper message from a plain object. Also converts values to their respective internal types.
+         * @param object Plain object
+         * @returns ErrorWrapper
+         */
+        public static fromObject(object: { [k: string]: any }): rpc.ErrorWrapper;
+
+        /**
+         * Creates a plain object from an ErrorWrapper message. Also converts values to other types if specified.
+         * @param message ErrorWrapper
+         * @param [options] Conversion options
+         * @returns Plain object
+         */
+        public static toObject(message: rpc.ErrorWrapper, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+        /**
+         * Converts this ErrorWrapper to JSON.
+         * @returns JSON object
+         */
+        public toJSON(): { [k: string]: any };
+    }
+
     /** Properties of a RpcMessage. */
     interface IRpcMessage {
 
@@ -165,7 +261,7 @@ export namespace rpc {
         result?: (rpc.IParamWrapper|null);
 
         /** RpcMessage error */
-        error?: (string|null);
+        error?: (rpc.IErrorWrapper|null);
     }
 
     /** Represents a RpcMessage. */
@@ -196,7 +292,7 @@ export namespace rpc {
         public result?: (rpc.IParamWrapper|null);
 
         /** RpcMessage error. */
-        public error: string;
+        public error?: (rpc.IErrorWrapper|null);
 
         /**
          * Creates a new RpcMessage instance using the specified properties.

@@ -2,7 +2,7 @@ import * as Assert from "assert";
 import FlexNet from "./src/main";
 import { uuid } from "./src/utils/util";
 import RpcHelper from "./src/rpc-helper";
-import WsClientNode from "./src/ws-client-node";
+import WsClientNode from "./src/client-edge/ws-client-node";
 
 process.env.NODE_ENV = "developer";
 
@@ -24,7 +24,7 @@ new FlexNet()
     port_range_end: 65535,
     mtu: 1200,
   })
-  .then(async (context) => {
+  .then(async ([context, transport]) => {
     context.log.info("[Extension] Running...");
     const client1: any = new WsClientNode(
       "ws://localhost:31474",

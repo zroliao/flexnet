@@ -5,7 +5,7 @@ import PeerFSM from "./edge-fsm";
 import * as $pb from "../protobuf";
 import { uuid } from "../utils/util";
 import RpcHelper from "../rpc-helper";
-import { FlexNet, Jrpc } from "../types";
+import { FlexNet } from "../types";
 import { getPublicIpAddress } from "../collect-info";
 import PeerDataChannel, { PeerState } from "./pp-datachannel-node";
 
@@ -70,11 +70,10 @@ class PPClient extends FSM {
     return result.changed;
   }
 
-  public sendByWish(event: string, buffer: string | Buffer) {
+  public boardcast(buffer: string | Buffer) {
     const keys = Object.keys(this._peers);
     keys.forEach((key: string) => {
-      const peer: PeerDataChannel = this._peers[key];
-      if (peer.isYourWish(event)) peer.send(buffer);
+      this._peers[key].send(buffer);
     });
   }
 

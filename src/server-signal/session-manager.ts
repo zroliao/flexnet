@@ -1,7 +1,6 @@
 import * as $pb from "../protobuf";
-import { uuid } from "../utils/util";
 import RpcHelper from "../rpc-helper";
-import { FlexNet, Jrpc, RpcSignal } from "../types";
+import { FlexNet, RpcSignal } from "../types";
 
 interface Options {
   version: string;

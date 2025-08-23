@@ -85,6 +85,11 @@ class WSClient {
     this.WSC_.close();
   }
 
+  public send(data) {
+    if (!this.WSC_) throw new Error(`peer connection not exist`);
+    this.WSC_.send(data);
+  }
+
   private forwardMsg(event: any) {
     try {
       if (this.dataCallback_) this.dataCallback_(event?.data);

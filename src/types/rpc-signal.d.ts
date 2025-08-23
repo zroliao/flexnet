@@ -1,5 +1,3 @@
-import { Jrpc } from "./jrpc-basic";
-
 export namespace RpcSignal {
   //
   // method = signal.session.auth

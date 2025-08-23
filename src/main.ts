@@ -5,6 +5,7 @@ import * as mkdirp from "mkdirp";
 import { FlexNet } from "./types";
 import EdgeFlexNet from "./server-edge";
 import SignalFlexNext from "./server-signal";
+import EdgeTransport from "./server-edge/edge-transport";
 
 class MainFlexNet {
   //
@@ -33,14 +34,24 @@ class MainFlexNet {
     /* @param */ rootDir: string,
     /* @param */ edgePort: number,
     /* @param */ edgeConfig: FlexNet.EdgeConfig,
-    /* @param */ done?: (x: FlexNet.Context) => void
+    /* @param */ done?: ([cts, transport]: [
+      FlexNet.Context,
+      EdgeTransport
+    ]) => void
     /* RETURN */
-  ): Promise<FlexNet.Context> {
+  ): Promise<[FlexNet.Context, EdgeTransport]> {
     //
-    const ctx: FlexNet.Context = await this.install(rootDir, edgePort);
-    new EdgeFlexNet(log, this.getConfig(), edgeConfig, ctx.path, this._overSSL);
-    if (done) done(ctx);
-    return ctx;
+    const context: FlexNet.Context = await this.install(rootDir, edgePort);
+    const transport: EdgeTransport = new EdgeTransport(log);
+    new EdgeFlexNet(
+      context,
+      transport,
+      this.getConfig(),
+      edgeConfig,
+      this._overSSL
+    );
+    if (done) done([context, transport]);
+    return [context, transport];
   }
 
   private async install(

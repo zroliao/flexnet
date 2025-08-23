@@ -28,6 +28,21 @@ message ParamWrapper {
   string chunk_id = 7;      // 同一份資料唯一識別
 }
 
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+// code	  | message                | 解釋
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+// -32700	| Parse error            | 語法解析錯誤	伺服器端接收到無效的 JSON。該錯誤傳送於伺服器嘗試解析 JSON 文字
+// -32600	| Invalid Request        | 無效請求	傳送的 JSON 內容不是一個有效的請求對象。
+// -32601	| Method not found       | 找不到方法	該方法不存在或無效。
+// -32602	| Invalid params         | 無效的參數	無效的方法參數。
+// -32603	| Internal error         | 內部錯誤	JSON-RPC 內部錯誤。
+// -32000 | to -32099	Server error | 伺服器端錯誤	預留用於自訂的伺服器錯誤。
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+message ErrorWrapper {
+  int32 code = 1;           // 錯誤碼
+  string message = 2;       // 錯誤訊息
+}
+
 // 通用 JSON-RPC 訊息
 message RpcMessage {
   string jsonrpc = 1;       // 固定 "2.0"
@@ -36,5 +51,5 @@ message RpcMessage {
   string id = 4;            // request 或 subscription id
   ParamWrapper params = 5;  // 請求參數 / Notify / Subscribe
   ParamWrapper result = 6;  // Response 回傳結果
-  string error = 7;         // Response 錯誤訊息
+  ErrorWrapper error = 7;   // Response 錯誤訊息
 }

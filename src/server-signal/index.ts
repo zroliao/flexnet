@@ -1,5 +1,5 @@
 import RpcHelper from "../rpc-helper";
-import { FlexNet, Jrpc } from "../types";
+import { FlexNet } from "../types";
 import SessionManager from "./session-manager";
 import WebSocketServer from "../server/ws-server";
 

@@ -6,7 +6,7 @@ const webpack = require('webpack');
 const rendererConfig = {
   mode: 'production',
   entry: {
-    'index': './src/ws-client-node.ts'
+    'index': './src/client-edge/ws-client-node.ts'
   },
   module: {
     rules: [

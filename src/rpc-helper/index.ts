@@ -90,7 +90,7 @@ class RpcHelper {
   }
 
   createRpcResponseError(
-    /* @param */ error: string,
+    /* @param */ error: { code: number; message: string },
     /* @param */ method: string,
     /* @param */ id: string
     /* RETURN */
