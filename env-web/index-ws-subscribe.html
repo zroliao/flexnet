@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+
+  <body>
+    <p>
+      這是一個 P2P 測試範例，你可以修改 option.offer_id
+      連接某一台主機服務並且定時送出 heartbeat 確認是否可以連線正確
+    </p>
+    <script src="../dist/wsweb/index.js"></script>
+    <script src="../dist/ppweb/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/protobufjs/dist/protobuf.js"></script>
+    <script>
+      /****************************************************************************
+       * (1) 如果你有修改 code 則要執行 yarn build
+       * (2) 執行此範例需要在根目錄底下執行 http-server (根目錄指的就是 index.html 的上一層)
+       *     - 若你的電腦缺少 http-server 請先執行 npm install http-server -g
+       ***************************************************************************/
+
+      console.info(wsweb);
+      protobuf.load(["../protos/json-rpc.proto"], async (err, root) => {
+        //
+        // 建立 Peer Connection 並且每9秒就送一次 heartbeat message
+        // =======================================================================
+        function createPeerConnection(address) {
+          /* ****** */
+
+          const rpcMessage = root.lookupType("rpc.RpcMessage");
+          console.info(rpcMessage);
+
+          const rtc = new wsweb.default(
+            address,
+            () => console.info(`connected`),
+            (data) => {
+              const buffer = new Uint8Array(data);
+              console.info(rpcMessage.decode(buffer));
+            },
+            () => console.info(`disconnect`)
+          );
+
+          const id = "subscribe-1";
+
+          setTimeout(async () => {
+            console.info("send subscribe");
+            const method = "a.a.b";
+            const request = {
+              jsonrpc: "2.0",
+              msgType: 3, // "SUBSCRIBE"
+              method,
+              id,
+              params: {
+                type: 0,
+                data: JSON.stringify({ browser: true, echo: "subscribe" }),
+              },
+            };
+            const message = rpcMessage.create(request);
+            const payload = rpcMessage.encode(message).finish();
+            rtc.send(payload);
+          }, 5000);
+
+          setTimeout(async () => {
+            console.info("send subscribe");
+            const method = "a.a.b";
+            const request = {
+              jsonrpc: "2.0",
+              msgType: 4, // "UNSUBSCRIBE"
+              method,
+              id,
+              params: {
+                type: 0,
+                data: JSON.stringify({ browser: true, echo: "unsubscribe" }),
+              },
+            };
+            const message = rpcMessage.create(request);
+            const payload = rpcMessage.encode(message).finish();
+            rtc.send(payload);
+          }, 20000);
+        }
+
+        // 建立3個 peer connection
+        // =======================================================================
+        createPeerConnection("ws://localhost:31474");
+      });
+    </script>
+  </body>
+</html>

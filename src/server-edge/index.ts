@@ -86,9 +86,12 @@ class EdgeFlexNet {
   ): Promise<void> {
     //
     try {
-      const response = await this.recvMessage(buffer);
-      if (response === undefined) return;
-      if (ws && ws.isClosed !== true) ws.enqueue(response);
+      const reply = (response: Uint8Array) => {
+        if (response === undefined) return;
+        if (ws && ws.isClosed !== true) ws.enqueue(response);
+      };
+
+      await this.recvMessage(buffer, reply);
     } catch (ex: any) {
       // 再確認是否要做錯誤回應
     }
@@ -104,9 +107,12 @@ class EdgeFlexNet {
   ): Promise<void> {
     //
     try {
-      const response = await this.recvMessage(buffer);
-      if (response === undefined) return;
-      peer.send(Buffer.from(response));
+      const reply = (response: Uint8Array) => {
+        if (response === undefined) return;
+        peer.send(Buffer.from(response));
+      };
+
+      await this.recvMessage(buffer, reply);
     } catch (ex: any) {
       // 再確認是否要做錯誤回應
     }
@@ -115,15 +121,17 @@ class EdgeFlexNet {
   /**
    *
    */
-  private async recvMessage(buffer: any): Promise<Uint8Array | undefined> {
+  private async recvMessage(
+    /* @param */ buffer: any,
+    /* @param */ reply: (data: Uint8Array) => void
+  ): Promise<void> {
     //
     // FIXME: 這裡應該要實現轉拋 json-rpc 訊息到有需求的人身上
     const message = RpcHelper.decodeRpcMessage(buffer);
     if ((message as any).msgType === "NOTIFY") {
       this._transport.notify(message);
-      return undefined;
     } else {
-      return await this._transport.dispatch(message);
+      await this._transport.dispatch(message, reply);
     }
   }
 } // -- FlexNet
