@@ -2,8 +2,8 @@ import MainFlexNet from "./src/main";
 
 new MainFlexNet()
   .createEdge(__dirname, 31474, {
-    username: "37012eaa-4ef2-46d0-a079-855fceb13a29",
-    password: "49aa53b8-f965-4312-b3fc-12d21bf66103",
+    username: "specific-your-username",
+    password: "specific-your-password",
     peer_id: "pptp://edge-server/31474",
     signal_server: "ws://localhost:31473",
     ice_servers: [

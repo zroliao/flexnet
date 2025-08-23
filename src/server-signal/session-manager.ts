@@ -142,8 +142,8 @@ class SignalSessionManager {
 
   private matchUsernamePassword(params: RpcSignal.SessionAuthParams): boolean {
     return (
-      params.username === "37012eaa-4ef2-46d0-a079-855fceb13a29" &&
-      params.password === "49aa53b8-f965-4312-b3fc-12d21bf66103"
+      params.username === "specific-your-username" &&
+      params.password === "specific-your-password"
     );
   }
 
