@@ -20,7 +20,7 @@
        ***************************************************************************/
 
       console.info(ppweb);
-      protobuf.load(["../protos/json-rpc.proto"], async (err, root) => {
+      protobuf.load(["../protos/rpc.proto"], async (err, root) => {
         //
         // 建立 Peer Connection 並且每9秒就送一次 heartbeat message
         // =======================================================================
