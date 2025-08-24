@@ -18,6 +18,8 @@ Thumbs.db
 
 # srouce code
 src/server-edge/node_datachannel.node
+samples/log
+samples/config
 
 # output
 dist/flexnet/node_datachannel.node
