@@ -1,4 +1,4 @@
-import MainFlexNet from "./src/main";
+import MainFlexNet from "../src/main";
 
 new MainFlexNet()
   .createSignal(__dirname, 31473)

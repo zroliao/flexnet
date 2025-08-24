@@ -1,8 +1,8 @@
-import MainFlexNet from "./src/main";
-import { FlexNet } from "./src/types";
-import * as $pb from "./src/protobuf";
-import RpcHelper from "./src/rpc-helper";
-import EdgeTransport from "./src/server-edge/edge-transport";
+import MainFlexNet from "../src/main";
+import { FlexNet } from "../src/types";
+import * as $pb from "../src/protobuf";
+import RpcHelper from "../src/rpc-helper";
+import EdgeTransport from "../src/server-edge/edge-transport";
 import { clearInterval } from "timers";
 
 let edgeTransport;

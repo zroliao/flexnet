@@ -7,8 +7,8 @@
     "lint": "tslint src/**/*.ts --exclude src/**/*.d.ts",
     "dev": "nodemon --watch src/**/*.ts --ignore src/**/*.spec.ts --exec ts-node index.ts",
     "build": "node build/build-script.js",
-    "run:edge": "ts-node example-edge-server.ts",
-    "run:signal": "ts-node example-signal-server.ts",
+    "run:edge": "ts-node samples/example-edge-server.ts",
+    "run:signal": "ts-node samples/example-signal-server.ts",
     "build:pb:flexnet": "pbjs -t static-module -w commonjs -o src/protobuf/index.js protos/json-rpc.proto && pbts -o src/protobuf/index.d.ts src/protobuf/index.js",
     "build:pb:browser": "mkdirp dist-ptbf-web && pbjs --force-number -t static -w commonjs -o dist-ptbf-web/index.js protos/*.proto && pbts -o dist-ptbf-web/index.d.ts dist-ptbf-web/index.js",
     "postbuild": "xcopy /E /I /Y D:\\dev\\_samples\\test\\utils\\node-libdatachannel\\win64\\node_datachannel.node D:\\dev\\zroliao\\flexnet\\dist\\core\\"
