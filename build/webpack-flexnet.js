@@ -30,9 +30,9 @@ const rendererConfig = {
     ]
   },
   plugins: [],
-  name: 'core',
+  name: 'flexnet',
   output: {
-    path: path.resolve(__dirname, '../dist/core'),
+    path: path.resolve(__dirname, '../dist/flexnet'),
     libraryTarget: 'umd',
     filename: '[name].js'
   },

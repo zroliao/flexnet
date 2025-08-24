@@ -26,9 +26,9 @@ const rendererConfig = {
     ]
   },
   plugins: [],
-  name: 'wsnode',
+  name: 'flexnet-wsc',
   output: {
-    path: path.resolve(__dirname, '../dist/wsnode'),
+    path: path.resolve(__dirname, '../dist/flexnet-wsc'),
     libraryTarget: 'umd',
     filename: '[name].js'
   },

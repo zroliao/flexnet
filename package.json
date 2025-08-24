@@ -1,5 +1,5 @@
 {
-  "name": "@flexnet/core",
+  "name": "flexnet",
   "version": "0.1.0",
   "author": "JW Liao",
   "scripts": {
@@ -11,7 +11,7 @@
     "run:signal": "ts-node samples/example-signal-server.ts",
     "build:pb:flexnet": "pbjs -t static-module -w commonjs -o src/protobuf/index.js protos/rpc.proto && pbts -o src/protobuf/index.d.ts src/protobuf/index.js",
     "build:pb:browser": "mkdirp dist-ptbf-web && pbjs --force-number -t static -w commonjs -o dist-ptbf-web/index.js protos/*.proto && pbts -o dist-ptbf-web/index.d.ts dist-ptbf-web/index.js",
-    "postbuild": "xcopy /E /I /Y D:\\dev\\_samples\\test\\utils\\node-libdatachannel\\win64\\node_datachannel.node D:\\dev\\zroliao\\flexnet\\dist\\core\\"
+    "postbuild": "cpx \"native/node-libdatachannel/0.3.3/win64/node_datachannel.node\" dist/flexnet/"
   },
   "dependencies": {
     "electron-log": "4.4.1",
@@ -35,7 +35,8 @@
     "ts-node": "10.9.2",
     "tslint": "6.1.3",
     "typescript": "5.9.2",
-    "webpack": "5.64.2"
+    "webpack": "5.64.2",
+    "cpx": "1.5.0"
   },
   "engines": {
     "node": "= 22.14.0",

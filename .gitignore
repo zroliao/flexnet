@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+
+# Native addons
+*.node
+
+# srouce code
+src/server-edge/node_datachannel.node
+
+# output
+dist/flexnet/node_datachannel.node

@@ -1,6 +1,5 @@
 module.exports = [
-  require('./webpack-core'),
-  require('./webpack-ws-web'),
-  require('./webpack-ws-node'),
-  require('./webpack-pp-web')
+  require('./webpack-flexnet'),
+  require('./webpack-browser'),
+  require('./webpack-flexnet-wsc'),
 ];

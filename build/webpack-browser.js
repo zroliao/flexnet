@@ -6,7 +6,7 @@ const webpack = require('webpack');
 const rendererConfig = {
   mode: 'production',
   entry: {
-    'index': './src/browser/ws-client-web.ts'
+    'index': './src/browser/index.ts'
   },
   module: {
     rules: [
@@ -26,12 +26,12 @@ const rendererConfig = {
     ]
   },
   plugins: [],
-  name: 'wsweb',
+  name: 'flexnet',
   externals: ["fs", "path"],
   output: {
-    path: path.resolve(__dirname, '../dist/wsweb'),
+    path: path.resolve(__dirname, '../dist/browser'),
     libraryTarget: 'umd',
-    library: "wsweb",
+    library: "flexnet",
     filename: '[name].js'
   },
   resolve: {
