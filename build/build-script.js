@@ -36,10 +36,11 @@ webpack(webpackConfig, function (err, stats) {
     const extension = { version: "1.0.0" };
     extension.version = selfPackage.version;
     extension.name = wp.name;
-    const targetPath = path.resolve(__dirname, `../dist/${wp.name}`);
+    const name = wp.output.path.replace(/\\/g, "/").split("/").at(-1);
+    const targetPath = path.resolve(__dirname, `../dist/${name}`);
     mkdir("-p", targetPath);
     fs.writeFileSync(
-      `${__dirname}/../dist/${wp.name}/package.json`,
+      `${__dirname}/../dist/${name}/package.json`,
       JSON.stringify(extension, null, 2)
     );
   });
