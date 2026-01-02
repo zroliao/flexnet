@@ -26,7 +26,7 @@ async function pingGoogleIsConnected(): Promise<boolean> {
 
 class PPClient extends FSM {
   //
-  private _tag: string = "[core.pptp.server]";
+  private _tag: string = "[node.client.peer]";
   private _geoip: FlexNet.GeoIP = {};
   private _peers = {};
   private _logger: any = console;
@@ -47,6 +47,8 @@ class PPClient extends FSM {
 
   private _supericeValue: number = 5;
   private _supericeCount: number = 0;
+
+  private _isConnected: boolean = false;
 
   constructor(
     /* @param */ option: FlexNet.EdgeConfig,
@@ -233,15 +235,23 @@ class PPClient extends FSM {
 
     this._signal.send(request, onerror);
     this.fsm().send("SUCCESS");
+
+    this._isConnected = true;
   }
 
   private onSignalClose() {
-    this._logger.warn(`${this._tag} detect signal server connection close`);
+    if (this._isConnected === true) {
+      this._logger.warn(`${this._tag} disconnect with signal server`);
+      this._isConnected = false;
+    }
     this.fsm().send("ERROR");
   }
 
   private onSignalError(err: any) {
-    this._logger.warn(`${this._tag} signal server error(${err?.message})`);
+    if (this._isConnected === true) {
+      this._logger.warn(`${this._tag} signal server error(${err?.message})`);
+      this._isConnected = false;
+    }
     this.fsm().send("ERROR");
   }
 

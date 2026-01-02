@@ -11,7 +11,7 @@
     "run:signal": "ts-node samples/example-signal-server.ts",
     "build:pb:flexnet": "pbjs -t static-module -w commonjs -o src/protobuf/index.js protos/rpc.proto && pbts -o src/protobuf/index.d.ts src/protobuf/index.js",
     "build:pb:browser": "mkdirp dist-ptbf-web && pbjs --force-number -t static -w commonjs -o dist-ptbf-web/index.js protos/*.proto && pbts -o dist-ptbf-web/index.d.ts dist-ptbf-web/index.js",
-    "postbuild": "cpx \"native/node-libdatachannel/0.3.3/win64/node_datachannel.node\" dist/flexnet/"
+    "postbuild": "cpx \"native/node-libdatachannel/0.31.0/win64/node_datachannel.node\" dist/flexnet/"
   },
   "dependencies": {
     "electron-log": "4.4.1",
