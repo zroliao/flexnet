@@ -5,9 +5,7 @@
   </head>
 
   <body>
-    <p>
-      創建2個 browser datachannel
-    </p>
+    <p>創建2個 browser datachannel</p>
     <script src="../dist/browser/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/protobufjs/dist/protobuf.js"></script>
     <script>
@@ -34,27 +32,6 @@
           /* @param */ alias
         ) {
           //
-          let counter = 0;
-          const defaultOption = {
-            version: "0.1.0",
-            username: "specific-your-username",
-            password: "specific-your-password",
-            peer_id: peer,
-            offer_id: offer,
-            signal_server: "ws://localhost:31473",
-            ice_servers: [
-              {
-                urls: [
-                  "stun:stun.l.google.com:19302",
-                  "stun:stun1.l.google.com:19302",
-                  "stun:stun2.l.google.com:19302",
-                  "stun:stun3.l.google.com:19302",
-                  "stun:stun4.l.google.com:19302",
-                ],
-              },
-            ],
-          };
-
           const onopen = () => {
             console.info(`[${alias}] connected`);
           };
@@ -68,8 +45,27 @@
             console.info(`[${alias}] disconnect`);
           };
 
+          let counter = 0;
           const client = new flexnet.default.datachannel(
-            defaultOption,
+            {
+              version: "0.1.0",
+              username: "specific-your-username",
+              password: "specific-your-password",
+              peer_id: peer,
+              offer_id: offer,
+              signal_server: "ws://localhost:31473",
+              ice_servers: [
+                {
+                  urls: [
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun3.l.google.com:19302",
+                    "stun:stun4.l.google.com:19302",
+                  ],
+                },
+              ],
+            },
             onopen,
             ondata,
             onclose

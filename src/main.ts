@@ -54,6 +54,10 @@ class MainFlexNet {
     return [context, transport];
   }
 
+  public async remove(done?: () => void): Promise<void> {
+    if (done) done();
+  }
+
   private async install(
     /* @param */ rootDir: string,
     /* @param */ edgePort: number
@@ -95,10 +99,6 @@ class MainFlexNet {
     };
 
     return ctx;
-  }
-
-  public async remove(done?: () => void): Promise<void> {
-    if (done) done();
   }
 
   private getConfig(): FlexNet.BaseConfig {

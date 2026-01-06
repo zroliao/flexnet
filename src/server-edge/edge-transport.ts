@@ -58,6 +58,7 @@ class EdgeTransport {
   async dispatch(
     /* @param */ message: $pb.rpc.RpcMessage,
     /* @param */ reply: (data: Uint8Array) => void
+    /* RETURN */
   ): Promise<void> {
     //
     if (!this.exist(message.method)) {
@@ -95,9 +96,9 @@ class EdgeTransport {
     return reply(response);
   }
 
-  replyTo(id: string, data: Uint8Array) {
-    if (this._subscribes.has(id)) {
-      const reply = this._subscribes.get(id);
+  replyTo(subId: string, data: Uint8Array) {
+    if (this._subscribes.has(subId)) {
+      const reply = this._subscribes.get(subId);
       return reply(data);
     }
   }

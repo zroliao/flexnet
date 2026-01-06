@@ -32,7 +32,7 @@ class PPClient extends FSM {
   private _logger: any = console;
   private _option: FlexNet.EdgeConfig | null = null;
   private _signal: WebSocket | null = null;
-  private _server: string = "";
+  private _serverPeerId: string = "";
   private _aliveTimer: NodeJS.Timeout | null = null;
   private _signalAliveTime: number = Date.now();
   private _aliveInterval: number = 60 * 1000; // 60 sec
@@ -59,7 +59,7 @@ class PPClient extends FSM {
     super(PeerFSM);
     this._logger = logger;
     this._option = option;
-    this._server = `${this._option.signal_server}/${this._option.peer_id}`;
+    this._serverPeerId = `${this._option.signal_server}/${this._option.peer_id}`;
     this.startFsm();
   }
 
@@ -87,7 +87,7 @@ class PPClient extends FSM {
         break;
       }
       case "connecting": {
-        this._signal = new WebSocket(this._server, {
+        this._signal = new WebSocket(this._serverPeerId, {
           rejectUnauthorized: false,
         });
         this._signal.binaryType = "arraybuffer";

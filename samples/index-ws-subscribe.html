@@ -12,7 +12,6 @@
       //
       protobuf.load(["../protos/rpc.proto"], async (err, root) => {
         //
-        const address = "ws://localhost:31474";
         const rpcMessage = root.lookupType("rpc.RpcMessage");
 
         const onopen = () => {
@@ -29,14 +28,14 @@
         };
 
         const client = new flexnet.default.websocket(
-          address,
+          "ws://localhost:31474",
           onopen,
           ondata,
           onclose
         );
 
         const id = "subscribe-1";
-        const subscribeDelay = 50_00;
+        const subscribeDelay = 5_000;
         const unsubscribeDelay = 20_000;
 
         console.info(`subscribe delay: ${subscribeDelay}ms`);

@@ -30,36 +30,36 @@ interface RtcConfig {
 }
 
 class PeerDataChannel {
-  private logger_: any = console;
+  private _logger: any = console;
 
-  private option_: PeerOption;
-  private remote_: string;
-  private signal_: any;
-  private datach_: any; // data channel
-  private mypeer_: any; // peer connection
-  private mywish_ = {};
+  private _option: PeerOption;
+  private _remote: string;
+  private _signal: any;
+  private _datach: any; // data channel
+  private _mypeer: any; // peer connection
+  private _mywish = {};
 
-  private statechange_: any; // state change callback function
-  private datareceive_: any; // data receive callback function
+  private _statechange: any; // state change callback function
+  private _datareceive: any; // data receive callback function
 
   constructor(option: PeerOption, logger: any = console) {
-    this.logger_ = logger;
-    this.option_ = option;
-    this.remote_ = option.remote_id;
-    this.signal_ = option.signalsrv;
+    this._logger = logger;
+    this._option = option;
+    this._remote = option.remote_id;
+    this._signal = option.signalsrv;
     const nodeDataChannel = require("./node_datachannel.node");
     nodeDataChannel.initLogger("Warning");
 
     // stringify then parse for clean undefined json key
     const rtcConfig: RtcConfig = JSON.parse(
       JSON.stringify({
-        iceServers: this.option_.iceServers,
-        proxyServer: this.option_.proxyServer,
-        enableIceTcp: this.option_.enableIceTcp,
-        portRangeBegin: this.option_.portRangeBegin,
-        portRangeEnd: this.option_.portRangeEnd,
-        maxMessageSize: this.option_.maxMessageSize,
-        iceTransportPolicy: this.option_.iceTransportPolicy,
+        iceServers: this._option.iceServers,
+        proxyServer: this._option.proxyServer,
+        enableIceTcp: this._option.enableIceTcp,
+        portRangeBegin: this._option.portRangeBegin,
+        portRangeEnd: this._option.portRangeEnd,
+        maxMessageSize: this._option.maxMessageSize,
+        iceTransportPolicy: this._option.iceTransportPolicy,
       })
     );
 
@@ -74,20 +74,20 @@ class PeerDataChannel {
     peerConnection.onLocalDescription(this.onLocalDescription.bind(this));
     peerConnection.onLocalCandidate(this.onLocalCandidate.bind(this));
     peerConnection.onDataChannel(this.onDataChannel.bind(this));
-    this.mypeer_ = peerConnection;
+    this._mypeer = peerConnection;
   }
 
   public statechange(callback) {
-    this.statechange_ = callback;
+    this._statechange = callback;
   }
 
   public datareceive(callback) {
-    this.datareceive_ = callback;
+    this._datareceive = callback;
   }
 
   public peer() {
     return (
-      this.mypeer_ || {
+      this._mypeer || {
         send: (data: string | Buffer): boolean => false,
       }
     );
@@ -96,7 +96,7 @@ class PeerDataChannel {
   public addWishList(list: string[]) {
     if (Array.isArray(list)) {
       for (const event of list) {
-        this.mywish_[event] = {
+        this._mywish[event] = {
           /* for extend */
         };
       }
@@ -106,31 +106,31 @@ class PeerDataChannel {
   public delWishList(list: string[]) {
     if (Array.isArray(list)) {
       for (const event of list) {
-        delete this.mywish_[event];
+        delete this._mywish[event];
       }
     }
   }
 
   public isYourWish(event: string): boolean {
-    return this.mywish_.hasOwnProperty(event);
+    return this._mywish.hasOwnProperty(event);
   }
 
   public send(data: string | Buffer): boolean {
     try {
-      if (!this.datach_) return false;
-      else if (data instanceof Buffer) this.datach_.sendMessageBinary(data);
-      else if (typeof data === "string") this.datach_.sendMessage(data);
+      if (!this._datach) return false;
+      else if (data instanceof Buffer) this._datach.sendMessageBinary(data);
+      else if (typeof data === "string") this._datach.sendMessage(data);
       else return false;
       return true;
     } catch (e) {
-      this.logger_.debug(`[core.pptp.peerdc] ex@send(), ${e.message}`);
+      this._logger.debug(`[core.pptp.peerdc] ex@send(), ${e.message}`);
       return false;
     }
   }
 
   private onStateChange(state: PeerState) {
-    if (this.statechange_) {
-      this.statechange_(state, this.remote_);
+    if (this._statechange) {
+      this._statechange(state, this._remote);
     }
     switch (state) {
       case PeerState.connecting:
@@ -143,7 +143,7 @@ class PeerDataChannel {
   }
 
   private onGatheringStateChange(state) {
-    this.logger_.debug(`[core.pptp.peerdc] onGatheringStateChange => ${state}`);
+    this._logger.debug(`[core.pptp.peerdc] onGatheringStateChange => ${state}`);
     switch (state) {
       case "in-progress":
       case "complete":
@@ -156,8 +156,8 @@ class PeerDataChannel {
   private onLocalDescription(description, type) {
     switch (type) {
       case "answer":
-        this.signal_.send(
-          JSON.stringify({ id: this.remote_, type, description })
+        this._signal.send(
+          JSON.stringify({ id: this._remote, type, description })
         );
         break;
       default:
@@ -166,9 +166,9 @@ class PeerDataChannel {
   }
 
   private onLocalCandidate(candidate, mid) {
-    this.signal_.send(
+    this._signal.send(
       JSON.stringify({
-        id: this.remote_,
+        id: this._remote,
         type: "candidate",
         candidate,
         mid,
@@ -177,17 +177,17 @@ class PeerDataChannel {
   }
 
   private onDataChannel(dc) {
-    this.datach_ = dc;
+    this._datach = dc;
     dc.onMessage(this.onMessage.bind(this));
   }
 
   private onMessage(msg) {
     try {
-      if (this.datareceive_) {
-        this.datareceive_(msg, this.remote_);
+      if (this._datareceive) {
+        this._datareceive(msg, this._remote);
       }
     } catch (e) {
-      this.logger_.debug(`[core.pptp.peerdc] ex@onMessage(), ${e.message}`);
+      this._logger.debug(`[core.pptp.peerdc] ex@onMessage(), ${e.message}`);
     }
   }
 }
