@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+
+  <body>
+    <p>創建 browser datachannel 並且 subscribe + unsubscribe</p>
+    <script src="../dist/browser/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/protobufjs/dist/protobuf.js"></script>
+    <script>
+      //
+      protobuf.load(["../protos/rpc.proto"], async (err, root) => {
+        //
+        const rpcMessage = root.lookupType("rpc.RpcMessage");
+
+        const onopen = () => {
+          console.info("onopen", `connected`);
+        };
+
+        const ondata = (data) => {
+          const buffer = new Uint8Array(data);
+          console.info("ondata", rpcMessage.decode(buffer));
+        };
+
+        const onclose = () => {
+          console.info("onclose", `disconnect`);
+        };
+
+        const client = new flexnet.default.datachannel(
+          {
+            version: "0.1.0",
+            username: "specific-your-username",
+            password: "specific-your-password",
+            peer_id: "pptp://browser/user/1",
+            offer_id: "pptp://edge-server/31474",
+            signal_server: "ws://localhost:31473",
+            ice_servers: [
+              {
+                urls: [
+                  "stun:stun.l.google.com:19302",
+                  "stun:stun1.l.google.com:19302",
+                  "stun:stun2.l.google.com:19302",
+                  "stun:stun3.l.google.com:19302",
+                  "stun:stun4.l.google.com:19302",
+                ],
+              },
+            ],
+          },
+          onopen,
+          ondata,
+          onclose
+        );
+
+        const id = "subscribe-1";
+        const subscribeDelay = 5_000;
+        const unsubscribeDelay = 20_000;
+
+        console.info(`subscribe delay: ${subscribeDelay}ms`);
+        console.info(`unsubscribe delay: ${unsubscribeDelay}ms`);
+
+        setTimeout(async () => {
+          console.info("send subscribe");
+          const method = "a.a.b";
+          const request = {
+            jsonrpc: "2.0",
+            msgType: 3, // "SUBSCRIBE"
+            method,
+            id,
+            params: {
+              type: 0,
+              data: JSON.stringify({ browser: true, echo: "subscribe" }),
+            },
+          };
+          const message = rpcMessage.create(request);
+          const payload = rpcMessage.encode(message).finish();
+          client.send(payload);
+          console.info("send subscribe", payload);
+        }, subscribeDelay);
+
+        setTimeout(async () => {
+          console.info("send unsubscribe");
+          const method = "a.a.b";
+          const request = {
+            jsonrpc: "2.0",
+            msgType: 4, // "UNSUBSCRIBE"
+            method,
+            id,
+            params: {
+              type: 0,
+              data: JSON.stringify({ browser: true, echo: "unsubscribe" }),
+            },
+          };
+          const message = rpcMessage.create(request);
+          const payload = rpcMessage.encode(message).finish();
+          client.send(payload);
+          console.info("send unsubscribe", payload);
+        }, unsubscribeDelay);
+      });
+    </script>
+  </body>
+</html>
